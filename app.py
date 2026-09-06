@@ -4,7 +4,6 @@ import streamlit as st
 
 st.set_page_config(page_title="熊本 JASM 購屋與豪邸情報中心", layout="wide", page_icon="🏡")
 
-# 資料庫連線與資料讀取
 def load_data():
     conn = sqlite3.connect("kumamoto_properties.db")
     df = pd.read_sql_query("SELECT * FROM properties", conn)
@@ -14,13 +13,11 @@ def load_data():
     if df.empty:
         return df, history_df
 
-    # 單位轉換與計算
     df["price_man"] = df["current_price"] / 10_000
     df["land_ping"] = (df["land_area"] * 0.3025).round(1)
     df["bldg_ping"] = (df["building_area"] * 0.3025).round(1)
-    df["ping_price"] = (df["price_man"] / df["land_ping"]).round(1)
+    df["ping_price"] = (df["price_man"] / df["land_ping"].replace(0, 1)).round(1)
 
-    # 自動打上特色標籤（高圍牆 / 豪宅 / 大土地）
     def get_tags(row):
         tags = []
         if row["price_man"] >= 6000:
@@ -36,21 +33,29 @@ def load_data():
 
 df, history_df = load_data()
 
-# 標題與簡介
 st.title("🏡 熊本・JASM 通勤圈住宅與豪邸情報看板")
 st.caption("即時監測 SUUMO 物件、價格異動與降價紀錄｜通勤核心：菊陽町、合志市、光之森、大津町")
 
 if df.empty:
-    st.warning("目前資料庫尚無物件，請先執行 crawler.py 抓取資料！")
+    st.warning("目前資料庫尚無符合條件之物件，請確認爬蟲執行狀態或放寬篩選條件。")
     st.stop()
 
-# 側邊欄篩選器
+# 側邊欄滑桿防呆處理（避免 min == max 報錯）
 st.sidebar.header("🔍 物件篩選條件")
-min_p, max_p = int(df["price_man"].min()), int(df["price_man"].max())
+
+min_p = int(df["price_man"].min())
+max_p = int(df["price_man"].max())
+if min_p >= max_p:
+    max_p = min_p + 1000
+
 selected_price = st.sidebar.slider("售價範圍 (萬日圓)", min_p, max_p, (min_p, max_p), step=100)
 
-min_ping, max_ping = float(df["land_ping"].min()), float(df["land_ping"].max())
-selected_ping = st.sidebar.slider("土地坪數 (坪)", min_ping, max_ping, (min_ping, max_ping), step=5.0)
+min_ping = float(df["land_ping"].min())
+max_ping = float(df["land_ping"].max())
+if min_ping >= max_ping:
+    max_ping = min_ping + 10.0
+
+selected_ping = st.sidebar.slider("土地坪數 (坪)", min_ping, max_ping, (min_ping, max_ping), step=1.0)
 
 only_luxury = st.sidebar.checkbox("只看豪邸／大土地／高隱私物件")
 
@@ -74,7 +79,6 @@ kpi4.metric("監控總物件數", f"{len(df)} 件")
 
 st.markdown("---")
 
-# 分頁展示
 tab1, tab2, tab3 = st.tabs(["📋 物件列表", "📉 降價歷史追蹤", "ℹ️ JASM 通勤與生活地圖"])
 
 with tab1:
@@ -120,7 +124,6 @@ with tab2:
 with tab3:
     st.subheader("JASM 廠區與生活圈概覽")
     st.write("JASM 廠址：熊本縣菊池郡菊陽町原水 4106-1")
-    # 建立以 JASM 為中心的地圖 (經緯度: 32.8753, 130.8350)
     map_data = pd.DataFrame({
         'lat': [32.8753, 32.8601, 32.8805, 32.8770],
         'lon': [130.8350, 130.7925, 130.8650, 130.7650],
