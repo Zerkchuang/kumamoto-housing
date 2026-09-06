@@ -7,6 +7,7 @@ st.set_page_config(page_title="熊本 JASM 頂級住宅與豪邸情報看板", l
 def load_data():
     conn = sqlite3.connect("kumamoto_properties.db")
     try:
+        # 預設僅載入 status 為 active 的有效物件
         df = pd.read_sql_query("SELECT * FROM properties", conn)
     except Exception:
         df = pd.DataFrame()
@@ -46,19 +47,24 @@ if df.empty:
     st.stop()
 
 # 側邊欄篩選
-st.sidebar.header("📍 區域分類篩選")
+st.sidebar.header("📍 區域與狀態篩選")
+include_inactive = st.sidebar.checkbox("顯示已下架／失效物件", value=False)
+
+if not include_inactive and "status" in df.columns:
+    df = df[df["status"] == "active"]
+
 all_regions = ["全部區域"] + sorted(list(df["region"].dropna().unique()))
 selected_region = st.sidebar.selectbox("選擇主要區域", all_regions)
 
 st.sidebar.header("💰 預算與坪數篩選")
-min_p = int(df["price_man"].min())
-max_p = int(df["price_man"].max())
+min_p = int(df["price_man"].min()) if not df.empty else 0
+max_p = int(df["price_man"].max()) if not df.empty else 10000
 if min_p >= max_p:
     max_p = min_p + 1000
 selected_price = st.sidebar.slider("售價範圍 (萬日圓)", min_p, max_p, (min_p, max_p), step=100)
 
-min_ping = float(df["land_ping"].min())
-max_ping = float(df["land_ping"].max())
+min_ping = float(df["land_ping"].min()) if not df.empty else 0.0
+max_ping = float(df["land_ping"].max()) if not df.empty else 100.0
 if min_ping >= max_ping:
     max_ping = min_ping + 10.0
 selected_ping = st.sidebar.slider("土地坪數 (坪)", min_ping, max_ping, (min_ping, max_ping), step=2.0)
@@ -75,17 +81,17 @@ if selected_region != "全部區域":
 
 # 關鍵指標
 c1, c2, c3, c4 = st.columns(4)
-c1.metric("符合規格物件數", f"{len(filtered)} 件")
+c1.metric("在架有效物件數", f"{len(filtered)} 件")
 c2.metric("平均總價", f"{filtered['price_man'].mean():.0f} 萬円" if len(filtered) else "0")
 c3.metric("平均土地面積", f"{filtered['land_ping'].mean():.1f} 坪" if len(filtered) else "0")
 c4.metric("目前分區", selected_region)
 
 st.markdown("---")
 
-tab1, tab2, tab3 = st.tabs(["📋 物件一覽表", "📉 降價歷史追蹤", "📍 JASM 通勤動線分析"])
+tab1, tab2 = st.tabs(["📋 物件一覽表", "📉 降價歷史追蹤"])
 
 with tab1:
-    st.subheader(f"🏠 【{selected_region}】大坪數優質住宅一覽")
+    st.subheader(f"🏠 【{selected_region}】有效在架住宅一覽")
     show_cols = [
         "region", "title", "price_man", "land_spec", "bldg_spec", "layout", "build_year", "address", "tags", "url"
     ]
@@ -100,9 +106,9 @@ with tab1:
             "build_year": "完工時期",
             "address": "詳細地址",
             "tags": "特色標籤",
-            "url": "SUUMO 連結"
+            "url": "售屋網連結"
         }),
-        column_config={"SUUMO 連結": st.column_config.LinkColumn("點此開啟原網頁")},
+        column_config={"售屋網連結": st.column_config.LinkColumn("前往查看")},
         use_container_width=True,
         hide_index=True
     )
@@ -126,13 +132,3 @@ with tab2:
         )
     else:
         st.info("目前尚未有降價異動。")
-
-with tab3:
-    st.subheader("📍 各分區通勤 JASM 特性")
-    st.markdown("""
-    * **光之森周邊 (車程約 12～15 分)**：生活機能最強（youme Town 核心商圈），轉手流動性第一。
-    * **菊陽町 (車程約 8～12 分)**：通勤 TSMC 廠區最近，大土地好規劃高圍牆。
-    * **合志市 (車程約 12～15 分)**：新興高質感住宅區，多高級注文住宅與中庭極簡宅。
-    * **熊本市北區 (車程約 15～20 分)**：高台擁壁別墅多，天然隱私好。
-    * **熊本市東區 (車程約 20～25 分)**：近市中心生活圈與熊本 IC 交流道。
-    """)
