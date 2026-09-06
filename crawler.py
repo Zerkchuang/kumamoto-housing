@@ -17,8 +17,7 @@ HEADERS = {
 
 DB_NAME = "kumamoto_properties.db"
 
-# 目標區域（掛載 rn=1 最新刊登優先）
-# 43404: 菊池郡(菊陽町/大津町), 43216: 合志市, 43105: 熊本市北區, 43102: 熊本市東區
+# 抓取各區最新釋出一戶建（新着順 rn=1）
 TARGET_URLS = [
     ("菊陽町・光之森", "https://suumo.jp/ikkodate/kumamoto/sc_kikuchigun/?rn=1"),
     ("合志市", "https://suumo.jp/ikkodate/kumamoto/sc_koshi/?rn=1"),
@@ -71,15 +70,20 @@ def parse_price(text):
         total += int(float(m_man.group(1)) * 10_000)
     return total
 
-def parse_area(text):
+def parse_area_tolerant(text):
+    """加強版面積解析：支援單一數值、區間（取最大值）如 200m2~250m2、m2、㎡"""
     if not text:
         return 0.0
-    # 支援 200.5m2, 200.5㎡, 200m2 等格式
-    match = re.search(r"(\d+(?:\.\d+)?)\s*(?:m2|㎡|m²)", text)
-    return float(match.group(1)) if match else 0.0
+    matches = re.findall(r"(\d+(?:\.\d+)?)\s*(?:m2|㎡|m²)", text)
+    if matches:
+        return max([float(m) for m in matches])
+    # 支援只有數字緊跟 m 的情況
+    alt_match = re.findall(r"(\d+(?:\.\d+)?)\s*m", text)
+    if alt_match:
+        return max([float(m) for m in alt_match])
+    return 0.0
 
 def classify_region(address, default_region):
-    """精確劃分區域，特別將光之森生活圈獨立標示"""
     if "光の森" in address or "光之森" in address:
         return "光之森周邊"
     elif "菊陽町" in address:
@@ -93,31 +97,29 @@ def classify_region(address, default_region):
     return default_region
 
 def is_within_10_years(year_str):
-    """只抓最新：必須是新築或 2016 年以後完工"""
     if not year_str or "新築" in year_str or "予定" in year_str or "相談" in year_str:
         return True
-    match_year = re.search(r"(20\d{2})年", year_str)
-    if match_year:
-        return int(match_year.group(1)) >= 2016
-    match_age = re.search(r"築(\d+)年", year_str)
-    if match_age:
-        return int(match_age.group(1)) <= 10
+    m_year = re.search(r"(20\d{2})年", year_str)
+    if m_year:
+        return int(m_year.group(1)) >= 2016
+    m_age = re.search(r"築(\d+)年", year_str)
+    if m_age:
+        return int(m_age.group(1)) <= 10
     return False
 
 def is_valid_layout(layout):
-    """3LDK / 3DK 以上"""
     if not layout:
         return True
     m = re.search(r"(\d+)[L|D|K|S]", layout)
     return int(m.group(1)) >= 3 if m else False
 
-def scrape_suumo(region_label, base_url, max_pages=4):
+def scrape_suumo(region_label, base_url, max_pages=8):
     scraped = []
     domain = "https://suumo.jp"
 
     for page in range(1, max_pages + 1):
         url = f"{base_url}&pn={page}" if page > 1 else base_url
-        print(f"[*] 爬取最新【{region_label}】第 {page} 頁: {url}")
+        print(f"[*] 深入搜尋【{region_label}】第 {page} 頁...")
         try:
             resp = requests.get(url, headers=HEADERS, timeout=15)
             if resp.status_code != 200:
@@ -141,37 +143,35 @@ def scrape_suumo(region_label, base_url, max_pages=4):
                 id_m = re.search(r"nc_(\d+)|([0-9]{8,})", link)
                 p_id = id_m.group(0) if id_m else link.split("?")[0].rstrip("/").split("/")[-1]
 
-                # 價格解析
                 p_elem = unit.select_one(".dottable-value") or unit.select_one(".price") or unit.select_one(".cassetteitem_price")
                 price = parse_price(p_elem.text if p_elem else "")
 
-                # 萃取整張卡片文字進行強力正則比對（徹底解決 table 漏抓面積問題）
                 unit_text = unit.text
 
                 # 所在地
-                addr_match = re.search(r"(?:所在地|住所)[\s:：]+([^\n\r\t]+(?:熊本[^\n\r\t]+))", unit_text)
-                address = addr_match.group(1).strip() if addr_match else ""
+                addr_m = re.search(r"(?:所在地|住所)[\s:：]+([^\n\r\t]+(?:熊本[^\n\r\t]+))", unit_text)
+                address = addr_m.group(1).strip() if addr_m else ""
                 if not address:
                     addr_elem = unit.select_one(".detail-item") or unit.select_one("td")
                     address = addr_elem.text.strip() if addr_elem else region_label
 
-                # 土地面積 (m2)
-                land_m = re.search(r"土地面積[\s:：]+([\d\.]+\s*(?:m2|㎡|m²))", unit_text)
-                land_area = parse_area(land_m.group(1)) if land_m else 0.0
+                # 土地面積
+                land_m = re.search(r"土地面積[\s:：]+([^\n\r]+)", unit_text)
+                land_area = parse_area_tolerant(land_m.group(1)) if land_m else 0.0
 
-                # 建物面積 (m2)
-                bldg_m = re.search(r"建物面積[\s:：]+([\d\.]+\s*(?:m2|㎡|m²))", unit_text)
-                bldg_area = parse_area(bldg_m.group(1)) if bldg_m else 0.0
+                # 建物面積
+                bldg_m = re.search(r"建物面積[\s:：]+([^\n\r]+)", unit_text)
+                bldg_area = parse_area_tolerant(bldg_m.group(1)) if bldg_m else 0.0
 
                 # 格局
                 layout_m = re.search(r"間取り[\s:：]+(\d+[A-Z]+(?:\+[A-Z]+)?)", unit_text)
-                layout = layout_m.group(1).strip() if layout_m else "3LDK以上"
+                layout = layout_m.group(1).strip() if layout_m else "3LDK"
 
                 # 築年月
                 year_m = re.search(r"(?:完成時期|築年月)[\s:：]+([^\n\r\t]+)", unit_text)
                 build_year = year_m.group(1).strip() if year_m else "新築"
 
-                # 嚴格篩選過濾：地坪 >= 200m2，建坪 >= 95m2，10年內，3LDK以上
+                # 條件過濾：地坪 >= 200m2 (60.5坪), 建坪 >= 95m2, 3LDK以上, 10年內
                 if land_area < 200.0:
                     continue
                 if bldg_area < 95.0:
@@ -195,6 +195,7 @@ def scrape_suumo(region_label, base_url, max_pages=4):
                     "layout": layout,
                     "build_year": build_year,
                 })
+                print(f"  👉 命中合格大宅: {title[:18]}... | 地坪:{land_area}㎡ | 建坪:{bldg_area}㎡ | 價格:{price//10000}萬円")
             except Exception:
                 continue
 
@@ -228,17 +229,25 @@ def save_to_db(items):
             cursor.execute("INSERT INTO price_history (property_id, price, recorded_at) VALUES (?, ?, ?)",
                            (p_id, it["current_price"], today_str))
         else:
-            cursor.execute("UPDATE properties SET last_seen_date = ?, region = ?, land_area = ?, building_area = ? WHERE property_id = ?",
-                           (today_str, it["region"], it["land_area"], it["building_area"], p_id))
+            cursor.execute("""
+                UPDATE properties
+                SET last_seen_date = ?, region = ?, address = ?, current_price = ?,
+                    land_area = ?, building_area = ?, layout = ?, build_year = ?, status = 'active'
+                WHERE property_id = ?
+            """, (today_str, it["region"], it["address"], it["current_price"],
+                  it["land_area"], it["building_area"], it["layout"], it["build_year"], p_id))
 
     conn.commit()
     conn.close()
-    print(f"\n[+] 處理完成！共新增入庫 {new_cnt} 筆嚴選大坪數最新物件。")
+    print(f"\n==========================================")
+    print(f"✅ 入庫完成！本次共篩選出 {len(items)} 筆符合規格的大坪數最新物件 (新增 {new_cnt} 筆)")
+    print(f"==========================================")
 
 if __name__ == "__main__":
     init_db()
     all_houses = []
+    print("[*] 開始全面深度掃描（菊陽町/光之森/合志市/北區/東區 最新前 8 頁）...")
     for label, url in TARGET_URLS:
-        res = scrape_suumo(label, url, max_pages=4)
+        res = scrape_suumo(label, url, max_pages=8)
         all_houses.extend(res)
     save_to_db(all_houses)
