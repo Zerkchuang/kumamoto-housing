@@ -13,6 +13,9 @@ def get_matching_properties():
         WHERE status='active'
           AND current_price > 0
           AND current_price <= 70000000
+          AND property_id LIKE 'suumo_%'
+          AND url LIKE '%/nc_%/%'
+          AND last_seen_date = date('now')
         ORDER BY
           CASE region
             WHEN '菊陽町' THEN 1
@@ -60,4 +63,8 @@ if __name__ == "__main__":
                 f"{r['layout'] or ''} {r['build_year'] or ''}".strip(),
                 r["url"],
             ]
+        # Safety gate: only same-run, canonical SUUMO detail URLs are allowed.
+        bad = [r for r in rows if "/nc_" not in (r["url"] or "")]
+        if bad:
+            raise RuntimeError("Refusing to send unverified/non-detail property URLs")
         push_line("\n".join(lines))
