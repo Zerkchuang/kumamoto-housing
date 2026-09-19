@@ -1,18 +1,21 @@
 import os
 import sqlite3
 import requests
+from datetime import datetime
 
 DB_NAME = "kumamoto_properties.db"
 
 def get_new_properties():
+    """Return only properties first seen today, avoiding repeated daily pushes."""
     conn = sqlite3.connect(DB_NAME)
     conn.row_factory = sqlite3.Row
+    today = datetime.now().strftime("%Y-%m-%d")
     rows = conn.execute("""
         SELECT * FROM properties
-        WHERE status='active'
+        WHERE status='active' AND first_seen_date = ?
         ORDER BY first_seen_date DESC
         LIMIT 10
-    """).fetchall()
+    """, (today,)).fetchall()
     conn.close()
     return rows
 
@@ -29,14 +32,15 @@ def push_line(message):
         timeout=15,
     )
     r.raise_for_status()
+    print("LINE notification sent successfully.")
     return True
 
 if __name__ == "__main__":
     rows = get_new_properties()
     if not rows:
-        print("No properties to notify.")
+        print("No newly discovered properties today; skip notification.")
     else:
-        lines = ["🏡 熊本 JASM 房源更新"]
+        lines = ["🏡 熊本 JASM 新房源"]
         for r in rows[:5]:
             price = int((r["current_price"] or 0) / 10000)
             land_ping = round((r["land_area"] or 0) * 0.3025, 1)
