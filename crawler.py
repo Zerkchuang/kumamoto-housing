@@ -29,9 +29,21 @@ def detail(pid, href, label):
  s=BeautifulSoup(r.text,"html.parser"); t=" ".join(s.stripped_strings)
  # Hard identity check: the fetched page must contain the requested nc id.
  if pid not in r.url and pid not in r.text: raise ValueError("detail identity mismatch")
- price=int(num(r"(\d[\d,]*(?:\.\d+)?)\s*万円",t)*10000)
- land=num(r"土地面積[^\d]{0,80}(\d+(?:\.\d+)?)\s*(?:m2|㎡|平米)",t)
- bld=num(r"建物面積[^\d]{0,80}(\d+(?:\.\d+)?)\s*(?:m2|㎡|平米)",t)
+ def field_value(label):
+  # SUUMO detail pages may place the value in a sibling td/dd rather than adjacent flattened text.
+  node=s.find(lambda tag: tag.name in ("th","dt","span","div") and label in tag.get_text(" ",strip=True))
+  if node:
+   nxt=node.find_next(["td","dd"])
+   if nxt: return nxt.get_text(" ",strip=True)
+  m=re.search(label+r".{0,180}",t,re.S)
+  return m.group(0) if m else ""
+ price_text=field_value("価格") or t
+ land_text=field_value("土地面積") or t
+ bld_text=field_value("建物面積") or t
+ price=int(num(r"(\d[\d,]*(?:\.\d+)?)\s*万円",price_text)*10000)
+ land=num(r"(\d+(?:\.\d+)?)\s*(?:m2|㎡|平米)",land_text)
+ bld=num(r"(\d+(?:\.\d+)?)\s*(?:m2|㎡|平米)",bld_text)
+ print(f"PARSE {pid}: price={price} land={land} building={bld}")
  lm=re.search(r"(\d+LDK(?:\+S（納戸）)?|\d+DK)",t)
  ym=re.search(r"((?:19|20)\d{2}年\d{1,2}月)",t)
  am=re.search(r"(熊本県(?:菊池郡菊陽町|合志市|熊本市(?:北区|東区))[^\s]{0,45})",t)
