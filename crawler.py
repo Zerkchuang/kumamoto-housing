@@ -63,9 +63,9 @@ def scrape(label,url):
    title=" ".join(a.stripped_strings).strip() or pid
    full=urljoin(url,href)
    address=(re.search(r"熊本県[^\s]{2,40}",txt) or [None,label])[1]
-   # User preference: <= 50m JPY, detached houses; keep broader inventory,
+   # User preference: <= 70m JPY, detached houses; keep broader inventory,
    # while rejecting malformed cards without real price/areas.
-   if price and price<=50_000_000 and land and bld:
+   if price and price<=70_000_000 and land and bld:
     out.append(dict(property_id=pid,title=title,url=full,region=region_for(txt,label),address=address,current_price=price,land_area=land,building_area=bld,layout=layout,build_year=ym.group(1) if ym else ""))
  except Exception as e: print(f"WARN {label}: {e}")
  return out
