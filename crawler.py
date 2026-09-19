@@ -27,6 +27,8 @@ def detail(pid, href, label):
  url=urljoin("https://suumo.jp",href.split("?")[0])
  r=requests.get(url,headers=HEADERS,timeout=25); r.raise_for_status()
  s=BeautifulSoup(r.text,"html.parser"); t=" ".join(s.stripped_strings)
+ # SUUMO sometimes serves mobile/alternate markup. Normalize common Japanese/full-width forms.
+ t=t.replace("ｍ²","m2").replace("m²","m2").replace("㎡","m2").replace("平米","m2")
  # Hard identity check: the fetched page must contain the requested nc id.
  if pid not in r.url and pid not in r.text: raise ValueError("detail identity mismatch")
  def field_value(label):
@@ -40,10 +42,23 @@ def detail(pid, href, label):
  price_text=field_value("価格") or t
  land_text=field_value("土地面積") or t
  bld_text=field_value("建物面積") or t
- price=int(num(r"(\d[\d,]*(?:\.\d+)?)\s*万円",price_text)*10000)
- land=num(r"(\d+(?:\.\d+)?)\s*(?:m2|㎡|平米)",land_text)
- bld=num(r"(\d+(?:\.\d+)?)\s*(?:m2|㎡|平米)",bld_text)
- print(f"PARSE {pid}: price={price} land={land} building={bld}")
+ # Prefer label-local parsing, then fall back to the normalized full page.
+ def labeled_number(label, unit, local):
+  patterns=[
+   label+r".{0,250}?(\\d[\\d,]*(?:\\.\\d+)?)\\s*"+unit,
+   r"(\\d[\\d,]*(?:\\.\\d+)?)\\s*"+unit
+  ]
+  for src in (local,t):
+   for p in patterns:
+    m=re.search(p,src,re.S)
+    if m: return float(m.group(1).replace(",",""))
+  return 0
+ price=int(labeled_number("価格",r"万円",price_text)*10000)
+ land=labeled_number("土地面積",r"m2",land_text)
+ bld=labeled_number("建物面積",r"m2",bld_text)
+ print(f"PARSE {pid}: status={r.status_code} final={r.url} bytes={len(r.content)} title={s.title.get_text(' ',strip=True)[:80] if s.title else ''} price={price} land={land} building={bld}")
+ if price==0 and land==0 and bld==0:
+  print("HTML_SAMPLE",re.sub(r"\\s+"," ",t[:500]))
  lm=re.search(r"(\d+LDK(?:\+S（納戸）)?|\d+DK)",t)
  ym=re.search(r"((?:19|20)\d{2}年\d{1,2}月)",t)
  am=re.search(r"(熊本県(?:菊池郡菊陽町|合志市|熊本市(?:北区|東区))[^\s]{0,45})",t)
