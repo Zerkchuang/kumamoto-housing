@@ -12,7 +12,7 @@ def get_matching_properties():
         SELECT * FROM properties
         WHERE status='active'
           AND current_price > 0
-          AND current_price <= 50000000
+          AND current_price <= 70000000
         ORDER BY
           CASE region
             WHEN '菊陽町' THEN 1
