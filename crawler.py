@@ -8,10 +8,8 @@ from bs4 import BeautifulSoup
 HEADERS={"User-Agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/128 Safari/537.36","Accept-Language":"ja,en-US;q=0.9,en;q=0.8"}
 DB_NAME="kumamoto_properties.db"
 TARGET_SOURCES=[
- ("SUUMO-菊陽町","https://suumo.jp/chukoikkodate/kumamoto/sc_kikuchigun/"),
+ ("SUUMO-菊陽町","https://suumo.jp/b/kodate/kw/%E8%8F%8A%E9%99%BD%E7%94%BA%E3%80%80%E4%B8%AD%E5%8F%A4%E4%BD%8F%E5%AE%85/"),
  ("SUUMO-合志市","https://suumo.jp/chukoikkodate/kumamoto/sc_koshi/"),
- ("SUUMO-熊本北區","https://suumo.jp/chukoikkodate/kumamoto/sc_43105/"),
- ("SUUMO-熊本東區","https://suumo.jp/chukoikkodate/kumamoto/sc_43102/"),
  ("SUUMO-光之森","https://suumo.jp/b/kodate/kw/%E5%85%89%E3%81%AE%E6%A3%AE%E3%80%80%E4%B8%AD%E5%8F%A4%E7%89%A9%E4%BB%B6/"),
 ]
 
@@ -50,19 +48,15 @@ def scrape(label,url):
    m=re.search(r"/nc_(\d+)/",href)
    if not m or m.group(1) in seen: continue
    seen.add(m.group(1)); pid="suumo_"+m.group(1)
-   card=a.find_parent(["li","div","section","article"]) or a
-   # Walk upward until enough listing text is available.
-   for _ in range(4):
-    txt=" ".join(card.stripped_strings)
-    if "万円" in txt and ("土地面積" in txt or "建物面積" in txt): break
-    if card.parent: card=card.parent
-   txt=" ".join(card.stripped_strings)
+   full=urljoin(url,href.split("?")[0])
+   # Fetch the canonical detail page so every field and URL belong to the same property.
+   d=requests.get(full,headers=HEADERS,timeout=20); d.raise_for_status()
+   ds=BeautifulSoup(d.text,"html.parser"); txt=" ".join(ds.stripped_strings)
    price=parse_price(txt); land=parse_area("土地面積",txt); bld=parse_area("建物面積",txt)
    ym=re.search(r"(20\d{2}年\d{1,2}月)",txt)
-   layout=(re.search(r"(\d+LDK(?:\+S（納戸）)?|\d+DK)",txt) or [None,""])[1]
-   title=" ".join(a.stripped_strings).strip() or pid
-   full=urljoin(url,href)
-   address=(re.search(r"熊本県[^\s]{2,40}",txt) or [None,label])[1]
+   lm=re.search(r"(\d+LDK(?:\+S（納戸）)?|\d+DK)",txt); layout=lm.group(1) if lm else ""
+   h=ds.find("h1"); title=" ".join(h.stripped_strings).strip() if h else pid
+   am=re.search(r"所在地\s*熊本県([^\s]{2,50})",txt); address=("熊本県"+am.group(1)) if am else label
    # User preference: <= 70m JPY, detached houses; keep broader inventory,
    # while rejecting malformed cards without real price/areas.
    if price and price<=70_000_000 and land and bld:
