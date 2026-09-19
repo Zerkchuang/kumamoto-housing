@@ -46,7 +46,11 @@ def detail(pid, href, label):
  address=am.group(1).strip() if am else label
  region="光之森周邊" if "光の森" in address or "光の森" in title else ("菊陽町" if "菊陽" in address or "菊池郡" in address else ("合志市" if "合志" in address else label))
  print(f"PARSE {pid}: price={price} land={land} building={bld} url={url}")
- if not (0<price<=MAX_PRICE and land>=200 and bld>=100): return None
+ # Housing age filter: completed within the last 10 years. New builds are included.
+ if not ym: return None
+ built_year=int(ym.group(1)[:4])
+ current_year=datetime.now().year
+ if not (0<price<=MAX_PRICE and land>=200 and bld>=100 and built_year>=current_year-10): return None
  return dict(property_id="suumo_"+pid,title=title,url=url,region=region,address=address,current_price=price,land_area=land,building_area=bld,layout=lm.group(1) if lm else "",build_year=ym.group(1) if ym else "")
 
 def scrape(label,url):
