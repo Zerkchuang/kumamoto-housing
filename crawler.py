@@ -26,46 +26,26 @@ def num(pattern,t):
 def detail(pid, href, label):
  url=urljoin("https://suumo.jp",href.split("?")[0])
  r=requests.get(url,headers=HEADERS,timeout=25); r.raise_for_status()
- s=BeautifulSoup(r.text,"html.parser"); t=" ".join(s.stripped_strings)
- # SUUMO sometimes serves mobile/alternate markup. Normalize common Japanese/full-width forms.
- t=t.replace("ｍ²","m2").replace("m²","m2").replace("㎡","m2").replace("平米","m2")
- # Hard identity check: the fetched page must contain the requested nc id.
+ s=BeautifulSoup(r.text,"html.parser")
+ t=" ".join(s.stripped_strings).replace("ｍ²","m2").replace("m²","m2").replace("㎡","m2").replace("平米","m2")
  if pid not in r.url and pid not in r.text: raise ValueError("detail identity mismatch")
- def field_value(label):
-  # SUUMO detail pages may place the value in a sibling td/dd rather than adjacent flattened text.
-  node=s.find(lambda tag: tag.name in ("th","dt","span","div") and label in tag.get_text(" ",strip=True))
-  if node:
-   nxt=node.find_next(["td","dd"])
-   if nxt: return nxt.get_text(" ",strip=True)
-  m=re.search(label+r".{0,180}",t,re.S)
-  return m.group(0) if m else ""
- price_text=field_value("価格") or t
- land_text=field_value("土地面積") or t
- bld_text=field_value("建物面積") or t
- # Prefer label-local parsing, then fall back to the normalized full page.
- def labeled_number(label, unit, local):
-  patterns=[
-   label+r".{0,250}?(\\d[\\d,]*(?:\\.\\d+)?)\\s*"+unit,
-   r"(\\d[\\d,]*(?:\\.\\d+)?)\\s*"+unit
-  ]
-  for src in (local,t):
-   for p in patterns:
-    m=re.search(p,src,re.S)
-    if m: return float(m.group(1).replace(",",""))
-  return 0
- price=int(labeled_number("価格",r"万円",price_text)*10000)
- land=labeled_number("土地面積",r"m2",land_text)
- bld=labeled_number("建物面積",r"m2",bld_text)
- print(f"PARSE {pid}: status={r.status_code} final={r.url} bytes={len(r.content)} title={s.title.get_text(' ',strip=True)[:80] if s.title else ''} price={price} land={land} building={bld}")
- if price==0 and land==0 and bld==0:
-  print("HTML_SAMPLE",re.sub(r"\\s+"," ",t[:500]))
+
+ # Parse the exact text format confirmed from GitHub's real SUUMO response.
+ pm=re.search(r"(?:物件価格\s*)?(\d[\d,]*)\s*万円",t)
+ landm=re.search(r"土地面積\s*(\d+(?:\.\d+)?)\s*m2",t)
+ bldm=re.search(r"建物面積\s*(\d+(?:\.\d+)?)\s*m2",t)
+ price=int(pm.group(1).replace(",",""))*10000 if pm else 0
+ land=float(landm.group(1)) if landm else 0.0
+ bld=float(bldm.group(1)) if bldm else 0.0
+
  lm=re.search(r"(\d+LDK(?:\+S（納戸）)?|\d+DK)",t)
- ym=re.search(r"((?:19|20)\d{2}年\d{1,2}月)",t)
- am=re.search(r"(熊本県(?:菊池郡菊陽町|合志市|熊本市(?:北区|東区))[^\s]{0,45})",t)
+ ym=re.search(r"完成時期\s*\(築年月\)\s*((?:19|20)\d{2}年\d{1,2}月)",t)
+ am=re.search(r"所在地\s*(熊本県.*?)(?:\s*地図を見る|\s*情報提供日)",t)
  h=s.find("h1")
- title=" ".join(h.stripped_strings) if h else f"SUUMO {pid}"
- address=am.group(1) if am else label
- region="光之森周邊" if "光の森" in t else ("菊陽町" if "菊陽" in t else ("合志市" if "合志" in t else label))
+ title=" ".join(h.stripped_strings) if h else (s.title.get_text(" ",strip=True) if s.title else f"SUUMO {pid}")
+ address=am.group(1).strip() if am else label
+ region="光之森周邊" if "光の森" in address or "光の森" in title else ("菊陽町" if "菊陽" in address or "菊池郡" in address else ("合志市" if "合志" in address else label))
+ print(f"PARSE {pid}: price={price} land={land} building={bld} url={url}")
  if not (0<price<=MAX_PRICE and land>=200 and bld>=100): return None
  return dict(property_id="suumo_"+pid,title=title,url=url,region=region,address=address,current_price=price,land_area=land,building_area=bld,layout=lm.group(1) if lm else "",build_year=ym.group(1) if ym else "")
 
