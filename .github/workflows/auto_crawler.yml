@@ -1,6 +1,11 @@
 name: Daily Kumamoto Housing Auto Crawler
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'crawler.py'
+      - 'line_notify.py'
   schedule:
     - cron: '0 0 * * *'
   workflow_dispatch:
