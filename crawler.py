@@ -39,7 +39,7 @@ def detail(pid, href, label):
  title=" ".join(h.stripped_strings) if h else f"SUUMO {pid}"
  address=am.group(1) if am else label
  region="光之森周邊" if "光の森" in t else ("菊陽町" if "菊陽" in t else ("合志市" if "合志" in t else label))
- if not (0<price<=MAX_PRICE and land>0 and bld>0): return None
+ if not (0<price<=MAX_PRICE and land>=200 and bld>=100): return None
  return dict(property_id="suumo_"+pid,title=title,url=url,region=region,address=address,current_price=price,land_area=land,building_area=bld,layout=lm.group(1) if lm else "",build_year=ym.group(1) if ym else "")
 
 def scrape(label,url):
