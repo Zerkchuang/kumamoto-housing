@@ -200,7 +200,14 @@ def detail(pid, href, label, property_type):
 
 
 def scrape(label, property_type, url):
-    response = requests.get(url, headers=HEADERS, timeout=25)
+    listing_headers = HEADERS.copy()
+    if property_type == "condo_new":
+        # SUUMO's mobile new-condo listing omits canonical /nc_ detail links.
+        listing_headers["User-Agent"] = (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 Chrome/140.0 Safari/537.36"
+        )
+    response = requests.get(url, headers=listing_headers, timeout=25)
     response.raise_for_status()
     pairs = []
     seen = set()
