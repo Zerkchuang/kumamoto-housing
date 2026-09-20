@@ -11,7 +11,7 @@ def get_matching_properties():
     rows = conn.execute("""
         SELECT * FROM properties
         WHERE status='active'
-          AND (current_price BETWEEN 1 AND 70000000
+          AND (current_price BETWEEN 1 AND 72992700
                OR (COALESCE(property_type, 'house')='condo_new' AND current_price=0))
           AND property_id LIKE 'suumo_%'
           AND url LIKE '%/nc_%/%'
@@ -60,7 +60,7 @@ if __name__ == "__main__":
             building_ping = round((r["building_area"] or 0) * 0.3025, 1)
             property_type = r["property_type"] if "property_type" in r.keys() else "house"
             type_label = {"house": "一戶建", "condo": "高級大樓", "condo_new": "新築高級大樓"}.get(property_type, "住宅")
-            price_text = f"{price:,}萬円" if price else "價格未定（待確認是否≤7,000萬円）"
+            price_text = f"{price:,}萬円" if price else "價格未定（待確認是否≤約7,299萬円（台幣1,500萬；換算匯率0.2055））"
             area_text = (
                 f"土地 {land_ping}坪｜建物 {building_ping}坪"
                 if property_type == "house"

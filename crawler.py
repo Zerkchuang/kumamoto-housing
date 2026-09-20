@@ -12,7 +12,8 @@ HEADERS = {
     "Accept-Language": "ja-JP,ja;q=0.9",
 }
 DB_NAME = "kumamoto_properties.db"
-MAX_PRICE = 70_000_000
+# Budget: TWD 15,000,000 / 0.2055 TWD per JPY; reference 2026-09-20.
+MAX_PRICE = 72992700
 MAX_AGE_YEARS = 15
 MIN_HOUSE_LAND = 200
 MIN_HOUSE_BUILDING = 100
