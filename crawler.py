@@ -1,4 +1,6 @@
 import re
+import json
+import sys
 import sqlite3
 from datetime import datetime
 from urllib.parse import urljoin
@@ -200,7 +202,7 @@ def detail(pid, href, label, property_type):
     }
 
 
-def scrape(label, property_type, url):
+def scrape(label, property_type, url, report=None):
     listing_headers = HEADERS.copy()
     if property_type == "condo_new":
         # SUUMO's mobile new-condo listing omits canonical /nc_ detail links.
@@ -217,6 +219,8 @@ def scrape(label, property_type, url):
         if pid not in seen:
             seen.add(pid)
             pairs.append((pid, href))
+    if report is not None:
+        report["discovered"] = len(pairs)
     print(f"DISCOVER {label}/{property_type}: {len(pairs)} detail links")
     items = []
     for pid, href in pairs:
@@ -225,6 +229,8 @@ def scrape(label, property_type, url):
             if item:
                 items.append(item)
         except Exception as exc:
+            if report is not None:
+                report["errors"] += 1
             print(f"WARN detail {pid}: {exc}")
     return items
 
@@ -278,25 +284,49 @@ def save(items):
                 ),
             )
     for (pid,) in cur.execute(
-        "SELECT property_id FROM properties WHERE property_id LIKE 'suumo_%'"
+        "SELECT property_id FROM properties"
     ).fetchall():
         if pid not in ids:
-            cur.execute("UPDATE properties SET status='inactive' WHERE property_id=?", (pid,))
+            cur.execute("UPDATE properties SET status='unverified' WHERE property_id=?", (pid,))
     conn.commit()
     conn.close()
     print(f"OK verified_inventory={len(items)} new={new} price_changes={changed}")
 
 
 if __name__ == "__main__":
+    from extra_sources import collect
     init_db()
-    inventory = []
+    inventory, statuses = [], []
     seen_ids = set()
     for source_label, source_type, source_url in TARGET_SOURCES:
+        report = dict(source="SUUMO / " + source_label + "/" + source_type,
+                      scope="列表首頁", discovered=0, matched=0, errors=0, unreadable=0)
         try:
-            for property_item in scrape(source_label, source_type, source_url):
-                if property_item["property_id"] not in seen_ids:
-                    seen_ids.add(property_item["property_id"])
-                    inventory.append(property_item)
+            found = scrape(source_label, source_type, source_url, report)
+            report["matched"] = len(found)
+            report["status"] = ("部分完成" if report["errors"] else "完成") if report["discovered"] else "未辨識到詳細頁；待檢查"
+            for item in found:
+                if item["property_id"] not in seen_ids:
+                    seen_ids.add(item["property_id"])
+                    inventory.append(item)
         except Exception as exc:
+            report["status"] = "連線或解析失敗"
+            report["errors"] += 1
             print(f"WARN source {source_label}/{source_type}: {exc}")
-    save(inventory)
+        statuses.append(report)
+    extra, reports = collect(sys.modules[__name__])
+    for item in extra:
+        if item["property_id"] not in seen_ids:
+            inventory.append(item)
+            seen_ids.add(item["property_id"])
+    statuses.extend(reports)
+    if inventory:
+        save(inventory)
+    # Persist every source outcome, including failed/empty runs. Notifications use
+    # this exact run's IDs, never yesterday's or an earlier same-day inventory.
+    payload = dict(checked_at=datetime.now().isoformat(timespec="seconds") + " UTC",
+                   sources=statuses, property_ids=sorted(seen_ids), count=len(inventory))
+    with sqlite3.connect(DB_NAME) as conn:
+        conn.execute("CREATE TABLE IF NOT EXISTS run_report(id INTEGER PRIMARY KEY, payload TEXT)")
+        conn.execute("INSERT OR REPLACE INTO run_report VALUES(1, ?)", (json.dumps(payload, ensure_ascii=False),))
+    print("RUN_REPORT " + json.dumps(payload, ensure_ascii=False), flush=True)

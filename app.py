@@ -1,3 +1,4 @@
+import json
 import sqlite3
 import pandas as pd
 import streamlit as st
@@ -26,7 +27,7 @@ def load_data():
     df["bldg_ping"] = (df["building_area"] * 0.3025).round(1)
 
     df["type_label"] = df["property_type"].map({
-        "house": "一戶建", "condo": "高級大樓", "condo_new": "新築高級大樓"
+        "house": "一戶建", "condo": "大樓候選", "condo_new": "新築建案候選"
     }).fillna("住宅")
     df["land_spec"] = df.apply(
         lambda r: f"{r['land_area']} ㎡ ({r['land_ping']} 坪)" if r["property_type"] == "house" else "—",
@@ -41,7 +42,7 @@ def load_data():
         elif row["property_type"] == "condo":
             tags.append("🏙️ 市區大樓")
         if row["property_type"] != "house" and row["bldg_ping"] >= 40:
-            tags.append("⭐ 室內約40坪以上優先")
+            tags.append("⭐ 專有面積約40坪以上優先")
         if row["price_man"] >= 6000:
             tags.append("👑 豪邸級")
         if row["property_type"] == "house" and row["land_ping"] >= 70:
@@ -54,6 +55,20 @@ def load_data():
     return df, history_df
 
 df, history_df = load_data()
+
+with sqlite3.connect("kumamoto_properties.db") as conn:
+    try:
+        report_row = conn.execute("SELECT payload FROM run_report WHERE id=1").fetchone()
+    except sqlite3.OperationalError:
+        report_row = None
+if report_row:
+    report = json.loads(report_row[0])
+    st.caption("最近抓取：" + report["checked_at"] + "；數量為刊登筆數，跨站可能重複")
+    with st.expander("各網站搜尋狀態", expanded=True):
+        st.dataframe(pd.DataFrame(report["sources"]).rename(columns={
+            "source":"來源", "scope":"搜尋範圍", "status":"狀態", "discovered":"詳細頁",
+            "matched":"候選", "errors":"讀取錯誤", "unreadable":"無法解析／非公開"}), hide_index=True)
+
 
 st.title("🏡 熊本 JASM 生活圈住宅與高級大樓情報看板")
 st.caption("一戶建：≤約7,299萬円（台幣1,500萬；換算匯率0.2055）、土地≥200㎡、建物≥100㎡｜高級大樓：不限制土地、專有面積約40坪優先｜全部屋齡15年內（含新築）")
@@ -71,7 +86,7 @@ if not include_inactive and "status" in df.columns:
 
 all_regions = ["全部區域"] + sorted(list(df["region"].dropna().unique()))
 selected_region = st.sidebar.selectbox("選擇主要區域", all_regions)
-type_options = ["全部類型", "一戶建", "高級大樓", "新築高級大樓"]
+type_options = ["全部類型", "一戶建", "大樓候選", "新築建案候選"]
 selected_type = st.sidebar.selectbox("選擇住宅類型", type_options)
 
 st.sidebar.header("💰 預算與坪數篩選")
