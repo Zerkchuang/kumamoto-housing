@@ -1,6 +1,8 @@
 import json
 import os
 import sqlite3
+import hmac
+import hashlib
 from urllib.parse import urlparse
 import requests
 from extra_sources import valid_detail_url
@@ -62,10 +64,30 @@ def build_messages(report, rows):
     return chunks
 
 
+def resolve_target(token):
+    endpoint = os.getenv('LINE_PUSH_TARGET_URL')
+    if endpoint:
+        signature = hmac.new(token.encode(), b'get-push-target', hashlib.sha256).hexdigest()
+        response = requests.get(
+            endpoint,
+            headers={'X-Push-Signature': signature},
+            timeout=20,
+        )
+        response.raise_for_status()
+        target = response.json().get('target')
+        if not target:
+            raise RuntimeError('Render returned no LINE push target')
+        return target
+    return os.getenv('LINE_USER_ID')
+
+
 def push_line(messages):
-    token, target = os.getenv('LINE_CHANNEL_ACCESS_TOKEN'), os.getenv('LINE_USER_ID')
-    if not token or not target:
-        raise RuntimeError('LINE secrets not configured')
+    token = os.getenv('LINE_CHANNEL_ACCESS_TOKEN')
+    if not token:
+        raise RuntimeError('LINE channel access token not configured')
+    target = resolve_target(token)
+    if not target:
+        raise RuntimeError('LINE push target not configured')
     # Five messages per API call; never silently truncate the remaining results.
     for start in range(0, len(messages), 5):
         r = requests.post('https://api.line.me/v2/bot/message/push',
