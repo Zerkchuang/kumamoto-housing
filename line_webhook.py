@@ -87,7 +87,13 @@ def webhook():
       elif typ=="message" and e.get("message",{}).get("type")=="text":
         q=e["message"]["text"].strip()
         ql=q.lower()
-        if q in ("最新房源","房源","找房","物件"): ans=homes()
+        source=e.get("source",{})
+        if q in ("推播目標","群組ID","群組id"):
+          target=source.get("groupId") or source.get("roomId") or source.get("userId")
+          kind={"group":"群組","room":"多人聊天室","user":"個人聊天室"}.get(source.get("type"),source.get("type","未知"))
+          ans=(f"目前是{kind}。\n推播目標 ID：\n{target}\n\n請把此 ID 設為 GitHub Actions Secret：LINE_USER_ID"
+               if target else "目前無法取得這個聊天室的推播目標 ID。")
+        elif q in ("最新房源","房源","找房","物件"): ans=homes()
         elif q in ("功能","選單","help","幫助","使用說明"): ans=help_text()
         elif q in ("日文練習","練日文"): ans=ask_gpt("請給我一個適合日本晶圓廠管理工作的短篇日文練習，包含日文、羅馬拼音、中文意思與一題讓我回答。")
         elif q in ("半導體","半導體戰報"): ans=ask_gpt("請依我的半導體關注方向整理一份精簡觀察框架；若沒有即時資料要明確說明。")
