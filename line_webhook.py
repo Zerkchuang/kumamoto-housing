@@ -75,6 +75,17 @@ def ask_gpt(q):
 @app.get("/")
 def health(): return {"ok":True,"model":MODEL}
 
+@app.get("/push-target")
+def push_target():
+    signature=request.headers.get("x-push-signature","")
+    expected=hmac.new(TOKEN.encode(),b"get-push-target",hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(signature,expected):
+        abort(403)
+    target=os.environ.get("LINE_PUSH_TARGET_ID","")
+    if not target:
+        abort(404)
+    return {"target":target}
+
 @app.post("/webhook")
 def webhook():
     body=request.get_data()
