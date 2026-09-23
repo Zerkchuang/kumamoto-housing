@@ -40,6 +40,7 @@ TARGET_SOURCES = [
     ("熊本市新築大樓", "condo_new", "https://suumo.jp/ms/shinchiku/kumamoto/"),
 ]
 CONDO_REGIONS = {"熊本市中央區", "熊本市東區", "熊本市北區"}
+HOUSE_REGIONS = {"菊陽町", "光之森周邊", "合志市", "熊本市東區", "熊本市北區"}
 
 
 def init_db():
@@ -90,9 +91,15 @@ def parse_region(address, title, fallback):
         return "熊本市北區"
     if "熊本市中央区" in joined:
         return "熊本市中央區"
+    if "熊本市南区" in joined:
+        return "熊本市南區"
+    if "熊本市西区" in joined:
+        return "熊本市西區"
     if "光の森" in joined:
         return "光之森周邊"
-    if "菊陽" in joined or "菊池郡" in joined:
+    if "大津町" in joined:
+        return "大津町"
+    if "菊陽" in joined:
         return "菊陽町"
     if "合志" in joined:
         return "合志市"
@@ -139,7 +146,7 @@ def detail(pid, href, label, property_type):
         price_man = 0
     else:
         price_man = first_number(
-            [r"(?:物件価格|価格)\s*(\d[\d,]*)\s*万円", r"(\d[\d,]*)\s*万円"],
+            [r"(?:物件価格|販売価格|価格)\s*(\d[\d,]*)\s*万円", r"(\d{3,5}(?:,\d{3})*)\s*万円"],
             early_text,
         )
     price = int(price_man) * 10_000
@@ -195,7 +202,12 @@ def detail(pid, href, label, property_type):
         return None
 
     if is_house:
-        matches = 0 < price <= MAX_PRICE and land >= MIN_HOUSE_LAND and area >= MIN_HOUSE_BUILDING
+        matches = (
+            region in HOUSE_REGIONS
+            and 0 < price <= MAX_PRICE
+            and land >= MIN_HOUSE_LAND
+            and area >= MIN_HOUSE_BUILDING
+        )
     else:
         known_price_matches = 0 < price <= MAX_PRICE
         price_pending_new_build = property_type == "condo_new" and price == 0
