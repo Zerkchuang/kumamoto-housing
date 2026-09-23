@@ -28,26 +28,29 @@ def get_matching_properties(report):
         if not valid_detail_url(row['property_id'], row['url']):
             raise RuntimeError('Unverified detail URL: ' + row['property_id'])
     return sorted(rows, key=lambda r: (
-        0 if r['property_type'] != 'house' and r['building_area'] >= 132.23 else 1,
+        0 if r['property_type'] not in {'house', 'house_new'} and r['building_area'] >= 132.23 else 1,
         r['region'], r['property_type'], r['current_price']))
 
 
 def build_messages(report, rows):
-    matched = sum(r['current_price'] > 0 and r['property_type'] != 'condo_new' for r in rows)
-    blocks = [f"🏡 熊本購屋搜尋狀態\n{report['checked_at']}\n本次候選刊登 {len(rows)} 筆（跨站可能重複）\n單戶已知價格 {matched} 筆；其餘為新築建案線索，戶型與售價需配對確認。\n預算台幣1,500萬（換算上限72,992,700円）｜屋齡15年內\n大樓專有面積約40坪優先；不限制土地"]
+    house_count = sum(r['property_type'] in {'house', 'house_new'} for r in rows)
+    new_house_count = sum(r['property_type'] == 'house_new' for r in rows)
+    condo_count = len(rows) - house_count
+    blocks = [f"🏡 熊本購屋搜尋狀態\n{report['checked_at']}\n本次候選刊登 {len(rows)} 筆（跨站可能重複）\n一戶建 {house_count} 筆（新築 {new_house_count} 筆）；大樓／新築大樓 {condo_count} 筆。\n預算台幣1,500萬（換算上限72,992,700円）｜屋齡15年內\n一戶建土地≥200㎡、建物≥100㎡；大樓專有面積約40坪優先"]
     for s in report['sources']:
         blocks.append(f"【{s['source']}】{s['status']}\n範圍：{s['scope']}\n詳細頁 {s['discovered']}／候選 {s['matched']}／讀取錯誤 {s['errors']}／無法解析或非公開 {s.get('unreadable', 0)}")
     blocks.append('以下是本次讀取的候選物件；網站刊登不等於仲介已確認仍可售。大樓為面積候選，管理品質與實際室內淨面積待確認。')
     for r in rows:
         kind = r['property_type']
-        label = {'house': '一戶建', 'condo': '大樓候選', 'condo_new': '新築建案線索'}.get(kind, kind)
+        label = {'house': '一戶建', 'house_new': '新築一戶建', 'condo': '大樓候選', 'condo_new': '新築大樓建案線索'}.get(kind, kind)
         source = {'suumo': 'SUUMO', 'tatara': 'たたら', 'smtrc': '三井住友トラスト'}.get(r['property_id'].split('_')[0], '')
         price = f"{r['current_price']/10000:,.0f}萬円" if r['current_price'] else '價格未定；預算未確認'
-        area = (f"土地 {r['land_area']:.2f}㎡｜建物 {r['building_area']:.2f}㎡" if kind == 'house'
+        is_house = kind in {'house', 'house_new'}
+        area = (f"土地 {r['land_area']:.2f}㎡｜建物 {r['building_area']:.2f}㎡" if is_house
                 else f"專有面積 {r['building_area']:.2f}㎡（{r['building_area']*0.3025:.1f}坪）")
-        if kind == 'condo_new':
-            area += '；建案最大面積與起價不一定屬同一戶'
-        star = '⭐ 約40坪優先 ' if kind != 'house' and r['building_area'] >= 132.23 else ''
+        if kind in {'house_new', 'condo_new'}:
+            area += '；建案面積與價格區間需確認是否屬同一戶'
+        star = '⭐ 約40坪優先 ' if not is_house and r['building_area'] >= 132.23 else ''
         blocks.append(f"{star}【{r['region']}｜{label}｜{source}】\n{r['title'][:180]}\n{price}｜{area}\n{r['layout']}｜{r['build_year']}\n{r['url']}")
     chunks, current = [], ''
     for block in blocks:

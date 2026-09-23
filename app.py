@@ -27,25 +27,25 @@ def load_data():
     df["bldg_ping"] = (df["building_area"] * 0.3025).round(1)
 
     df["type_label"] = df["property_type"].map({
-        "house": "一戶建", "condo": "大樓候選", "condo_new": "新築建案候選"
+        "house": "一戶建", "house_new": "新築一戶建", "condo": "大樓候選", "condo_new": "新築大樓建案候選"
     }).fillna("住宅")
     df["land_spec"] = df.apply(
-        lambda r: f"{r['land_area']} ㎡ ({r['land_ping']} 坪)" if r["property_type"] == "house" else "—",
+        lambda r: f"{r['land_area']} ㎡ ({r['land_ping']} 坪)" if r["property_type"] in {"house", "house_new"} else "—",
         axis=1,
     )
     df["bldg_spec"] = df.apply(lambda r: f"{r['building_area']} ㎡ ({r['bldg_ping']} 坪)", axis=1)
 
     def get_tags(row):
         tags = []
-        if row["property_type"] == "condo_new":
+        if row["property_type"] in {"house_new", "condo_new"}:
             tags.append("✨ 新築")
         elif row["property_type"] == "condo":
             tags.append("🏙️ 市區大樓")
-        if row["property_type"] != "house" and row["bldg_ping"] >= 40:
+        if row["property_type"] not in {"house", "house_new"} and row["bldg_ping"] >= 40:
             tags.append("⭐ 專有面積約40坪以上優先")
         if row["price_man"] >= 6000:
             tags.append("👑 豪邸級")
-        if row["property_type"] == "house" and row["land_ping"] >= 70:
+        if row["property_type"] in {"house", "house_new"} and row["land_ping"] >= 70:
             tags.append("🌳 大地坪(>70坪)")
         if any(k in str(row["title"]) for k in ["中庭", "コートハウス", "積水", "ダイワ", "邸宅", "平屋"]):
             tags.append("🛡️ 豪邸/平屋/名門")
@@ -86,7 +86,7 @@ if not include_inactive and "status" in df.columns:
 
 all_regions = ["全部區域"] + sorted(list(df["region"].dropna().unique()))
 selected_region = st.sidebar.selectbox("選擇主要區域", all_regions)
-type_options = ["全部類型", "一戶建", "大樓候選", "新築建案候選"]
+type_options = ["全部類型", "一戶建", "新築一戶建", "大樓候選", "新築大樓建案候選"]
 selected_type = st.sidebar.selectbox("選擇住宅類型", type_options)
 
 st.sidebar.header("💰 預算與坪數篩選")

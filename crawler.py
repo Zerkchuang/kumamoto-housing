@@ -30,6 +30,10 @@ TARGET_SOURCES = [
     ("光之森", "house", "https://suumo.jp/b/kodate/kw/%E5%85%89%E3%81%AE%E6%A3%AE%E3%80%80%E4%B8%AD%E5%8F%A4%E7%89%A9%E4%BB%B6/"),
     ("熊本市東區", "house", "https://suumo.jp/chukoikkodate/kumamoto/sc_kumamotoshihigashi/"),
     ("熊本市北區", "house", "https://suumo.jp/chukoikkodate/kumamoto/sc_kumamotoshikita/"),
+    ("菊陽町", "house_new", "https://suumo.jp/ikkodate/kumamoto/sc_kikuchigun/"),
+    ("合志市", "house_new", "https://suumo.jp/ikkodate/kumamoto/sc_koshi/"),
+    ("熊本市東區", "house_new", "https://suumo.jp/ikkodate/kumamoto/sc_kumamotoshihigashi/"),
+    ("熊本市北區", "house_new", "https://suumo.jp/ikkodate/kumamoto/sc_kumamotoshikita/"),
     ("熊本市中央區", "condo", "https://suumo.jp/ms/chuko/kumamoto/sc_kumamotoshichuo/"),
     ("熊本市東區", "condo", "https://suumo.jp/ms/chuko/kumamoto/sc_kumamotoshihigashi/"),
     ("熊本市北區", "condo", "https://suumo.jp/ms/chuko/kumamoto/sc_kumamotoshikita/"),
@@ -97,7 +101,7 @@ def parse_region(address, title, fallback):
 
 def build_date(text, is_new=False):
     patterns = [
-        r"完成時期\s*(?:\(築年月\)\s*)?((?:19|20)\d{2}年\d{1,2}月)",
+        r"(?:完成時期|完成予定時期?)\s*(?:\(築年月\)\s*)?((?:19|20)\d{2}年\d{1,2}月)",
         r"築年月\s*((?:19|20)\d{2}年\d{1,2}月)",
     ]
     if is_new:
@@ -129,6 +133,8 @@ def detail(pid, href, label, property_type):
         raise ValueError("detail identity mismatch")
 
     early_text = text[:2500]
+    is_house = property_type in {"house", "house_new"}
+    is_new = property_type in {"house_new", "condo_new"}
     if property_type == "condo_new" and re.search(r"価格\s*未定", early_text[:1000]):
         price_man = 0
     else:
@@ -138,8 +144,22 @@ def detail(pid, href, label, property_type):
         )
     price = int(price_man) * 10_000
     land = first_number([r"土地面積\s*(\d+(?:\.\d+)?)\s*m2"], text)
-    if property_type == "house":
+    if property_type == "house_new":
+        land_range = re.search(
+            r"土地面積\s*(\d+(?:\.\d+)?)\s*(?:m2)?\s*[～~-]\s*(\d+(?:\.\d+)?)\s*m2",
+            text,
+        )
+        if land_range:
+            land = max(float(land_range.group(1)), float(land_range.group(2)))
+    if is_house:
         area = first_number([r"建物面積\s*(\d+(?:\.\d+)?)\s*m2"], text)
+        if property_type == "house_new":
+            area_range = re.search(
+                r"建物面積\s*(\d+(?:\.\d+)?)\s*(?:m2)?\s*[～~-]\s*(\d+(?:\.\d+)?)\s*m2",
+                text,
+            )
+            if area_range:
+                area = max(float(area_range.group(1)), float(area_range.group(2)))
     else:
         # For a new development with a size range, use the largest offered unit so
         # developments containing a 70 m2+ candidate remain on the watchlist.
@@ -152,7 +172,7 @@ def detail(pid, href, label, property_type):
         )
 
     layout_match = re.search(r"(\d+LDK(?:\+S（納戸）)?(?:\s*[～~-]\s*\d+LDK)?|\d+DK)", text)
-    completed = build_date(text, is_new=property_type == "condo_new")
+    completed = build_date(text, is_new=is_new)
     address_match = re.search(
         r"(熊本県.*?)(?:\s*地図を見る|\s*\[\s*地図\s*\]|\s+TOP\s)", early_text
     )
@@ -174,7 +194,7 @@ def detail(pid, href, label, property_type):
     if not completed or not within_age_limit(completed):
         return None
 
-    if property_type == "house":
+    if is_house:
         matches = 0 < price <= MAX_PRICE and land >= MIN_HOUSE_LAND and area >= MIN_HOUSE_BUILDING
     else:
         known_price_matches = 0 < price <= MAX_PRICE
@@ -204,8 +224,8 @@ def detail(pid, href, label, property_type):
 
 def scrape(label, property_type, url, report=None):
     listing_headers = HEADERS.copy()
-    if property_type == "condo_new":
-        # SUUMO's mobile new-condo listing omits canonical /nc_ detail links.
+    if property_type in {"house_new", "condo_new"}:
+        # SUUMO's mobile new-build listings can omit canonical /nc_ detail links.
         listing_headers["User-Agent"] = (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
             "AppleWebKit/537.36 Chrome/140.0 Safari/537.36"
