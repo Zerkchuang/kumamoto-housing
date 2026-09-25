@@ -1,5 +1,9 @@
-import os, json, hmac, hashlib, base64, sqlite3, requests
+import os, json, hmac, hashlib, base64, sqlite3, requests, time
 from flask import Flask, request, abort
+import members
+from matching import match
+from extra_sources import valid_detail_url
+from web import install
 
 app=Flask(__name__)
 TOKEN=os.environ["LINE_CHANNEL_ACCESS_TOKEN"]
@@ -7,14 +11,12 @@ SECRET=os.environ["LINE_CHANNEL_SECRET"]
 OPENAI_KEY=os.environ.get("OPENAI_API_KEY","")
 DB=os.environ.get("DB_NAME","kumamoto_properties.db")
 MODEL=os.environ.get("OPENAI_MODEL","gpt-5.6-luna")
+install(app)
 
-PROFILE="""你是 Maple 的 LINE 專屬助理。用繁體中文、直接、精簡、有結論。
+PROFILE="""你是熊本找房 LINE 助理。用繁體中文、直接、精簡、有結論。
 常用情境：
-1. 熊本/JASM購屋：總價7000萬日圓內、土地200㎡以上、建物100㎡以上、屋齡10年內，新屋可；優先菊陽町、光之森、合志市、熊本市東區/北區。不可捏造房源。
-2. 半導體/AI：重點為先進封裝、HBM/DRAM/NAND、設備、化材、AI伺服器；區分已知事實與推論。
-3. 投資：短線看3個月內籌碼，長線看3個月以上基本面；提醒資料日期與風險，不捏造即時行情。
-4. 日本工作/日文：會議、安全、品質、設備與職場日語；日文可附羅馬拼音。
-5. 旅遊：偏好有效率、舒適、少繞路的規劃。
+1. 熊本購屋：只引用已驗證房源，不可捏造；預算及區域由使用者各自設定。
+2. 其他問題：如沒有即時資料，明確說明限制。
 若問題需要即時網路、ChatGPT記憶、外部工具或資料庫沒有的資料，要清楚說目前 LINE bot 沒有該即時資料，不可假裝已查到。"""
 
 def valid(body,sig):
@@ -27,20 +29,27 @@ def reply(token,text):
       json={"replyToken":token,"messages":[{"type":"text","text":str(text)[:4900]}]},timeout=20)
     r.raise_for_status()
 
-def homes():
+def homes(user_id=None):
     try:
         con=sqlite3.connect(DB); con.row_factory=sqlite3.Row
-        rows=con.execute("""SELECT title,current_price,land_area,building_area,build_year,url
-          FROM properties WHERE status='active' AND current_price<=70000000
-          AND land_area>=200 AND building_area>=100
-          ORDER BY last_seen_date DESC,current_price ASC LIMIT 8""").fetchall(); con.close()
+        report=json.loads(con.execute("SELECT payload FROM run_report WHERE id=1").fetchone()[0])
+        ids=set(report["property_ids"])
+        rows=[dict(r) for r in con.execute("SELECT * FROM properties WHERE status='active'")
+              if r["property_id"] in ids and valid_detail_url(r["property_id"], r["url"])]
+        con.close()
+        if user_id:
+            p=members.member(user_id)
+            if p:
+                rows=[r for r in rows if match(r,p)[0]]
+        rows=sorted(rows,key=lambda r:r["current_price"])[:8]
     except Exception:
         return "房源資料庫目前暫時無法讀取。"
     if not rows:return "目前資料庫沒有符合條件的已驗證物件。"
-    return "\n\n".join(f"{r['title']}\n{r['current_price']//10000}萬円｜土地{r['land_area']}㎡｜建物{r['building_area']}㎡｜{r['build_year']}\n{r['url']}" for r in rows)
+    return "\n\n".join(f"{r['title']}\n{str(r['current_price']//10000)+'萬円' if r['current_price'] else '價格未定'}｜{r['building_area']}㎡｜{r['build_year']}\n{r['url']}" for r in rows)
 
 def help_text():
     return """Maple 助理可直接使用：
+• 我的看板：私訊取得個人找房設定與收藏的登入連結（請勿在群組索取）
 • 最新房源／房源：列出符合條件的已驗證熊本物件
 • 購屋比較：直接問「幫我比較目前房源」
 • 半導體：問 HBM、DRAM、NAND、設備、材料、AI 供應鏈
@@ -86,6 +95,57 @@ def push_target():
         abort(404)
     return {"target":target}
 
+@app.post("/members/notify")
+def notify_members():
+    if not os.getenv("DATABASE_URL"):
+        abort(503)
+    body = request.get_data()
+    stamp = request.headers.get("x-notify-timestamp", "")
+    try:
+        if abs(time.time() - int(stamp)) > 300:
+            abort(403)
+    except ValueError:
+        abort(403)
+    digest = hmac.new(TOKEN.encode(), stamp.encode() + b"." + body, hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(digest, request.headers.get("x-notify-signature", "")):
+        abort(403)
+    data = request.get_json()
+    if not isinstance(data, dict) or not isinstance(data.get("rows"), list) or len(data["rows"]) > 200:
+        abort(400)
+    members.init()
+    sent, failed = 0, 0
+    for profile in members.subscribed():
+        candidates = []
+        for row in data["rows"]:
+            if not valid_detail_url(row.get("property_id", ""), row.get("url", "")):
+                continue
+            score, _ = match(row, profile)
+            if not score:
+                continue
+            old = members.last_notified(profile["user_id"], row["property_id"])
+            if old is None or (row.get("current_price") and row["current_price"] < old):
+                candidates.append((row, score, old))
+        candidates.sort(key=lambda x: -x[1])
+        if not candidates:
+            continue
+        # Keep LINE messages concise. Entries outside the first five remain unmarked for next run.
+        texts = []
+        for row, score, old in candidates[:5]:
+            price = f"{row['current_price']//10000}萬円" if row.get("current_price") else "價格未定"
+            label = "降價" if old is not None else "新候選"
+            texts.append(f"🏡 {label}｜{score}分｜{row['region']}\n{row['title'][:70]}\n{price}｜{row['building_area']}㎡\n{row['url']}")
+        try:
+            res = requests.post("https://api.line.me/v2/bot/message/push",
+                headers={"Authorization": f"Bearer {TOKEN}"},
+                json={"to": profile["user_id"], "messages": [{"type":"text","text":s} for s in texts]}, timeout=20)
+            res.raise_for_status()
+            for row, _, _ in candidates[:5]:
+                members.mark_notified(profile["user_id"], row["property_id"], row["current_price"])
+            sent += 1
+        except requests.RequestException:
+            failed += 1
+    return {"sent_users": sent, "failed_users": failed}, (502 if failed else 200)
+
 @app.post("/webhook")
 def webhook():
     body=request.get_data()
@@ -99,12 +159,25 @@ def webhook():
         q=e["message"]["text"].strip()
         ql=q.lower()
         source=e.get("source",{})
-        if q in ("推播目標","群組ID","群組id"):
+        if q in ("我的看板", "找房設定"):
+          if source.get("type") != "user" or not source.get("userId"):
+            ans = "請私訊 Bot『我的看板』；個人登入連結不會發到群組。"
+          elif not os.getenv("FLASK_SECRET_KEY") or not os.getenv("DATABASE_URL"):
+            ans = "個人看板尚未啟用，請稍後再試。"
+          else:
+            try:
+              members.register(source["userId"])
+              token = members.new_link(source["userId"])
+              ans = f"你的熊本找房看板（10分鐘內單次使用）：\n{request.host_url.rstrip('/')}/login/{token}\n請勿轉傳此連結。"
+            except Exception:
+              ans = "個人看板資料庫尚未備妥，稍後再試。"
+        elif q in ("推播目標","群組ID","群組id"):
           target=source.get("groupId") or source.get("roomId") or source.get("userId")
           kind={"group":"群組","room":"多人聊天室","user":"個人聊天室"}.get(source.get("type"),source.get("type","未知"))
           ans=(f"目前是{kind}。\n推播目標 ID：\n{target}\n\n請把此 ID 設為 GitHub Actions Secret：LINE_USER_ID"
                if target else "目前無法取得這個聊天室的推播目標 ID。")
-        elif q in ("最新房源","房源","找房","物件"): ans=homes()
+        elif q in ("最新房源","房源","找房","物件"):
+          ans=homes(source.get("userId") if source.get("type")=="user" else None)
         elif q in ("功能","選單","help","幫助","使用說明"): ans=help_text()
         elif q in ("日文練習","練日文"): ans=ask_gpt("請給我一個適合日本晶圓廠管理工作的短篇日文練習，包含日文、羅馬拼音、中文意思與一題讓我回答。")
         elif q in ("半導體","半導體戰報"): ans=ask_gpt("請依我的半導體關注方向整理一份精簡觀察框架；若沒有即時資料要明確說明。")

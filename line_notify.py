@@ -3,6 +3,7 @@ import os
 import sqlite3
 import hmac
 import hashlib
+import time
 from urllib.parse import urlparse
 import requests
 from extra_sources import valid_detail_url
@@ -71,12 +72,15 @@ def resolve_target(token):
     endpoint = os.getenv('LINE_PUSH_TARGET_URL')
     if endpoint:
         signature = hmac.new(token.encode(), b'get-push-target', hashlib.sha256).hexdigest()
-        response = requests.get(
-            endpoint,
-            headers={'X-Push-Signature': signature},
-            timeout=20,
-        )
-        response.raise_for_status()
+        for attempt in range(3):
+            try:
+                response = requests.get(endpoint, headers={'X-Push-Signature': signature}, timeout=60)
+                response.raise_for_status()
+                break
+            except requests.RequestException:
+                if attempt == 2:
+                    raise
+                time.sleep(10 * (attempt + 1))
         target = response.json().get('target')
         if not target:
             raise RuntimeError('Render returned no LINE push target')

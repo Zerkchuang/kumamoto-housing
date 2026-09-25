@@ -5,3 +5,5 @@ beautifulsoup4
 folium
 streamlit-folium
 flask
+sqlalchemy>=2,<3
+psycopg[binary]>=3,<4
