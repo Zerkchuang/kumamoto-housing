@@ -2,8 +2,10 @@ import re
 import json
 import sys
 import sqlite3
+import unicodedata
+import time
 from datetime import datetime
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse, unquote
 
 import requests
 from bs4 import BeautifulSoup
@@ -27,7 +29,8 @@ PREFERRED_CONDO_AREA = 132.23  # roughly 40 tsubo; preference, not a hard cutoff
 TARGET_SOURCES = [
     ("菊陽町", "house", "https://suumo.jp/chukoikkodate/kumamoto/sc_kikuchigun/"),
     ("合志市", "house", "https://suumo.jp/chukoikkodate/kumamoto/sc_koshi/"),
-    ("光之森", "house", "https://suumo.jp/b/kodate/kw/%E5%85%89%E3%81%AE%E6%A3%AE%E3%80%80%E4%B8%AD%E5%8F%A4%E7%89%A9%E4%BB%B6/"),
+    ("光之森中古", "mixed", "https://suumo.jp/b/kodate/kw/%E5%85%89%E3%81%AE%E6%A3%AE%E3%80%80%E4%B8%AD%E5%8F%A4%E7%89%A9%E4%BB%B6/"),
+    ("光之森新築", "mixed", "https://suumo.jp/b/kodate/kw/%E5%85%89%E3%81%AE%E6%A3%AE%E3%80%80%E6%96%B0%E7%AF%89/"),
     ("熊本市東區", "house", "https://suumo.jp/chukoikkodate/kumamoto/sc_kumamotoshihigashi/"),
     ("熊本市北區", "house", "https://suumo.jp/chukoikkodate/kumamoto/sc_kumamotoshikita/"),
     ("菊陽町", "house_new", "https://suumo.jp/ikkodate/kumamoto/sc_kikuchigun/"),
@@ -39,8 +42,24 @@ TARGET_SOURCES = [
     ("熊本市北區", "condo", "https://suumo.jp/ms/chuko/kumamoto/sc_kumamotoshikita/"),
     ("熊本市新築大樓", "condo_new", "https://suumo.jp/ms/shinchiku/kumamoto/"),
 ]
-CONDO_REGIONS = {"熊本市中央區", "熊本市東區", "熊本市北區"}
-HOUSE_REGIONS = {"菊陽町", "光之森周邊", "合志市", "熊本市東區", "熊本市北區"}
+CONDO_REGIONS = {"熊本市中央區", "熊本市東區", "熊本市北區", "光之森"}
+HOUSE_REGIONS = {"菊陽町", "光之森", "光之森周邊", "合志市", "熊本市東區", "熊本市北區"}
+
+
+def is_hikari(address):
+    """The 光の森 neighbourhood, not a station name in an unrelated address."""
+    compact = re.sub(r"\s+", "", unicodedata.normalize("NFKC", address or ""))
+    return bool(re.search(r"菊陽町光の森(?:[1-7](?:丁目)?|$)", compact))
+
+
+def parse_price(value):
+    """Read the first advertised price, including 億; 0 means unknown."""
+    value = unicodedata.normalize("NFKC", value).replace(",", "")
+    m = re.search(r"(\d+(?:\.\d+)?)億(?:(\d+(?:\.\d+)?)万)?円", value)
+    if m:
+        return round(float(m[1]) * 100000000 + float(m[2] or 0) * 10000)
+    m = re.search(r"(\d+(?:\.\d+)?)万円", value)
+    return round(float(m[1]) * 10000) if m else 0
 
 
 def init_db():
@@ -84,7 +103,9 @@ def first_number(patterns, text):
 
 
 def parse_region(address, title, fallback):
-    joined = f"{address} {title}"
+    if is_hikari(address):
+        return "光之森"
+    joined = address
     if "熊本市東区" in joined:
         return "熊本市東區"
     if "熊本市北区" in joined:
@@ -95,8 +116,6 @@ def parse_region(address, title, fallback):
         return "熊本市南區"
     if "熊本市西区" in joined:
         return "熊本市西區"
-    if "光の森" in joined:
-        return "光之森周邊"
     if "大津町" in joined:
         return "大津町"
     if "菊陽" in joined:
@@ -120,14 +139,16 @@ def build_date(text, is_new=False):
     return ""
 
 
-def within_age_limit(date_text):
+def within_age_limit(date_text, strict=False, now=None):
     match = re.match(r"(\d{4})年(\d{1,2})月", date_text)
     if not match:
         return False
     built_month = int(match.group(1)) * 12 + int(match.group(2))
-    now = datetime.now()
+    now = now or datetime.now()
+    if not 1 <= int(match.group(2)) <= 12:
+        return False
     cutoff_month = (now.year - MAX_AGE_YEARS) * 12 + now.month
-    return built_month >= cutoff_month
+    return built_month > cutoff_month if strict else built_month >= cutoff_month
 
 
 def detail(pid, href, label, property_type):
@@ -143,13 +164,9 @@ def detail(pid, href, label, property_type):
     is_house = property_type in {"house", "house_new"}
     is_new = property_type in {"house_new", "condo_new"}
     if property_type == "condo_new" and re.search(r"価格\s*未定", early_text[:1000]):
-        price_man = 0
+        price = 0
     else:
-        price_man = first_number(
-            [r"(?:物件価格|販売価格|価格)\s*(\d[\d,]*)\s*万円", r"(\d{3,5}(?:,\d{3})*)\s*万円"],
-            early_text,
-        )
-    price = int(price_man) * 10_000
+        price = parse_price(early_text)
     land = first_number([r"土地面積\s*(\d+(?:\.\d+)?)\s*m2"], text)
     if property_type == "house_new":
         land_range = re.search(
@@ -198,10 +215,14 @@ def detail(pid, href, label, property_type):
         f"PARSE {pid}: type={property_type} price={price} land={land} "
         f"area={area} built={completed} region={region} url={url}"
     )
-    if not completed or not within_age_limit(completed):
+    hikari = is_hikari(address)
+    if not completed or not within_age_limit(completed, strict=hikari):
         return None
 
-    if is_house:
+    if hikari:
+        # Collect all known-age residential offers here; budget and area are preferences.
+        matches = True
+    elif is_house:
         matches = (
             region in HOUSE_REGIONS
             and 0 < price <= MAX_PRICE
@@ -234,7 +255,94 @@ def detail(pid, href, label, property_type):
     }
 
 
+def hikari_listing_page(html, page_url, root_url):
+    """Return same-search pagination and residential detail links with relevant addresses."""
+    soup = BeautifulSoup(html, "html.parser")
+    root_path = unquote(urlparse(root_url).path).rstrip("/") + "/"
+    pages, pairs = set(), {}
+    for a in soup.select("a[href]"):
+        href = urljoin(page_url, a["href"]).split("?")[0]
+        parsed = urlparse(href)
+        if parsed.scheme != "https" or parsed.hostname != "suumo.jp":
+            continue
+        path = unquote(parsed.path)
+        if re.fullmatch(re.escape(root_path) + r"\d+/", path):
+            pages.add(href)
+        m = re.fullmatch(r"/(chukoikkodate|ikkodate|ms/chuko|ms/shinchiku)/kumamoto/[^/]+/nc_(\d+)/?", parsed.path)
+        if not m:
+            continue
+        card = a.find_parent("div", class_="cassette")
+        address = None
+        listed_date = ""
+        if card:
+            for header in card.select(".cassette_item-header"):
+                value = header.find_next_sibling(class_="cassette_item-body")
+                if not value:
+                    continue
+                name = header.get_text(strip=True)
+                if name == "所在地":
+                    address = value.get_text("", strip=True)
+                elif name in {"築年月", "完成時期", "完成予定時期"}:
+                    listed_date = value.get_text("", strip=True)
+        # Missing card address still gets a detail-page check; never trust title/station alone.
+        if address and not is_hikari(address):
+            continue
+        kind = {"chukoikkodate": "house", "ikkodate": "house_new",
+                "ms/chuko": "condo", "ms/shinchiku": "condo_new"}[m[1]]
+        pairs[m[2]] = (href, kind, listed_date)
+    return pairs, pages
+
+
+def scrape_hikari(url, report=None):
+    pending, visited, pairs = {url}, set(), {}
+    while pending and len(visited) < 100:
+        page_url = sorted(pending)[0]
+        pending.remove(page_url)
+        if page_url in visited:
+            continue
+        visited.add(page_url)
+        try:
+            for attempt in range(2):
+                try:
+                    response = requests.get(page_url, headers=HEADERS, timeout=25)
+                    response.raise_for_status()
+                    break
+                except requests.RequestException as exc:
+                    status = exc.response.status_code if exc.response is not None else 0
+                    if attempt or (status and status < 500):
+                        raise
+                    time.sleep(1)
+            found, pages = hikari_listing_page(response.text, page_url, url)
+            pairs.update(found)
+            pending.update(pages - visited)
+        except requests.RequestException as exc:
+            if report is not None:
+                report["errors"] += 1
+            print(f"WARN Hikari list page {page_url}: {exc}")
+    if report is not None:
+        report["scope"] = f"光之森地址核對；列表分頁 {len(visited)} 頁；屋齡未滿15年，不限預算與面積"
+        report["discovered"] = len(pairs)
+        if pending:
+            report["errors"] += 1
+            report["scope"] += "；分頁達保護上限，未完整"
+    items = []
+    for pid, (href, kind, listed_date) in sorted(pairs.items()):
+        if re.match(r"\d{4}年\d{1,2}月", listed_date) and not within_age_limit(listed_date, strict=True):
+            continue
+        try:
+            item = detail(pid, href, "光之森", kind)
+            if item and is_hikari(item["address"]):
+                items.append(item)
+        except Exception as exc:
+            if report is not None:
+                report["errors"] += 1
+            print(f"WARN Hikari detail {pid}: {exc}")
+    return items
+
+
 def scrape(label, property_type, url, report=None):
+    if property_type == "mixed":
+        return scrape_hikari(url, report)
     listing_headers = HEADERS.copy()
     if property_type in {"house_new", "condo_new"}:
         # SUUMO's mobile new-build listings can omit canonical /nc_ detail links.
@@ -336,7 +444,7 @@ if __name__ == "__main__":
         try:
             found = scrape(source_label, source_type, source_url, report)
             report["matched"] = len(found)
-            report["status"] = ("部分完成" if report["errors"] else "完成") if report["discovered"] else "未辨識到詳細頁；待檢查"
+            report["status"] = ("部分完成" if report["discovered"] else "連線或解析失敗") if report["errors"] else ("完成" if report["discovered"] else "未辨識到詳細頁；待檢查")
             for item in found:
                 if item["property_id"] not in seen_ids:
                     seen_ids.add(item["property_id"])

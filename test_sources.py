@@ -1,10 +1,46 @@
 import unittest
+from datetime import datetime
 from bs4 import BeautifulSoup
 import crawler
 from extra_sources import parse_detail, valid_detail_url, discover
 from line_notify import build_messages
 
 class SourcesTest(unittest.TestCase):
+    def test_hikari_age_is_strict_and_address_not_station(self):
+        now = datetime(2026,9,25)
+        self.assertTrue(crawler.within_age_limit('2011年10月', strict=True, now=now))
+        self.assertFalse(crawler.within_age_limit('2011年9月', strict=True, now=now))
+        self.assertFalse(crawler.within_age_limit('2010年4月', strict=True, now=now))
+        self.assertFalse(crawler.within_age_limit('', strict=True, now=now))
+        self.assertTrue(crawler.is_hikari('熊本県菊池郡菊陽町光の森７'))
+        self.assertFalse(crawler.is_hikari('熊本県合志市幾久富'))
+        self.assertEqual(crawler.parse_region('熊本県菊池郡菊陽町大字津久礼', '光の森駅徒歩10分', ''),'菊陽町')
+
+    def test_hikari_budget_area_exemption_and_oku_price(self):
+        s=self.sample(所在地='熊本県菊池郡菊陽町光の森1',価格='2億6037万円',専有面積='55m2')
+        item,_=parse_detail(s,'tatara_1','https://www.tatara-fudousan.com/property_detail/1',crawler)
+        self.assertEqual(item['current_price'],260370000)
+        self.assertEqual(item['building_area'],55)
+        self.assertEqual(item['region'],'光之森')
+        old=self.sample(所在地='熊本県菊池郡菊陽町光の森1',築年月='2000年1月')
+        self.assertIsNone(parse_detail(old,'tatara_1','https://www.tatara-fudousan.com/property_detail/1',crawler)[0])
+
+    def test_hikari_pagination_and_mixed_property_types(self):
+        root='https://suumo.jp/b/kodate/kw/test/'
+        html='''<a href="/b/kodate/kw/test/2/">次へ</a>
+        <a href="/b/kodate/kw/other/2/">別の検索</a>
+        <div class="cassette"><div class="cassette_item-header">所在地</div><div class="cassette_item-body">熊本県菊陽町光の森２</div>
+        <a href="/ikkodate/kumamoto/sc_kikuchigun/nc_1/">住宅</a></div>
+        <div class="cassette"><div class="cassette_item-header">所在地</div><div class="cassette_item-body">熊本県合志市幾久富</div>
+        <a href="/ikkodate/kumamoto/sc_koshi/nc_2/">光の森駅</a></div>
+        <a href="/ms/chuko/kumamoto/sc_kikuchigun/nc_3/">住所未取得</a>
+        <a href="/tochi/kumamoto/sc_kikuchigun/nc_4/">土地</a>'''
+        pairs,pages=crawler.hikari_listing_page(html,root,root)
+        self.assertEqual(pages,{root+'2/'})
+        self.assertEqual(set(pairs),{'1','3'})
+        self.assertEqual(pairs['1'][1],'house_new')
+        self.assertEqual(pairs['3'][1],'condo')
+
     def sample(self, **changes):
         data={'所在地':'熊本県熊本市東区長嶺南', '価格':'6,500万円', '専有面積':'135.50m 2 (壁芯)', '築年月':'2020年09月', '間取り':'4LDK'}
         data.update(changes)

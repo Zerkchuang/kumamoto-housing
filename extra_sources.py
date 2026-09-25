@@ -64,7 +64,8 @@ def parse_detail(soup, pid, url, config):
     if not address or not field('価格'):
         return None, 'unreadable'  # includes member-only or expired pages
     region = config.parse_region(address, '', '')
-    house_regions = {'菊陽町', '合志市', '光之森周邊', '熊本市東區', '熊本市北區'}
+    hikari = config.is_hikari(address)
+    house_regions = config.HOUSE_REGIONS
     # Do not accept other towns in Kikuchi county via the legacy broad region mapping.
     if '菊池郡' in address and '菊陽町' not in address:
         return None, 'filtered'
@@ -73,22 +74,22 @@ def parse_detail(soup, pid, url, config):
     if region not in (config.CONDO_REGIONS if condo else house_regions):
         return None, 'filtered'
     date = field('築年月', '建築年月')
-    if not date or not config.within_age_limit(date):
+    if not date or not config.within_age_limit(date, strict=hikari):
         return None, 'filtered'
     def number(value):
         m = re.search(r'(\d[\d,]*(?:\.\d+)?)', value)
         return float(m[1].replace(',', '')) if m else 0
     price_text = field('価格')
-    if '億' in price_text or not re.fullmatch(r'[\d,]+(?:\.\d+)?万円', price_text.replace(' ', '')):
+    if not re.fullmatch(r'(?:[\d,]+(?:\.\d+)?億(?:[\d,]+(?:\.\d+)?万)?|[\d,]+(?:\.\d+)?万)円', price_text.replace(' ', '')):
         return None, 'unreadable'
-    price = round(number(price_text) * 10000)
+    price = config.parse_price(price_text)
     area = number(field('専有面積') if condo else field('延床面積', '建物延面積', '建物面積'))
     land = 0 if condo else number(field('土地面積'))
-    if not (0 < price <= config.MAX_PRICE):
+    if not hikari and not (0 < price <= config.MAX_PRICE):
         return None, 'filtered'
-    if area < (config.MIN_CONDO_AREA if condo else config.MIN_HOUSE_BUILDING):
+    if not hikari and area < (config.MIN_CONDO_AREA if condo else config.MIN_HOUSE_BUILDING):
         return None, 'filtered'
-    if not condo and land < config.MIN_HOUSE_LAND:
+    if not hikari and not condo and land < config.MIN_HOUSE_LAND:
         return None, 'filtered'
     title_node = soup.find('title')
     title = text(title_node).split('｜')[0] if title_node else address

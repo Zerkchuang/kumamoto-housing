@@ -37,7 +37,8 @@ def build_messages(report, rows):
     house_count = sum(r['property_type'] in {'house', 'house_new'} for r in rows)
     new_house_count = sum(r['property_type'] == 'house_new' for r in rows)
     condo_count = len(rows) - house_count
-    blocks = [f"🏡 熊本購屋搜尋狀態\n{report['checked_at']}\n本次候選刊登 {len(rows)} 筆（跨站可能重複）\n一戶建 {house_count} 筆（新築 {new_house_count} 筆）；大樓／新築大樓 {condo_count} 筆。\n預算台幣1,500萬（換算上限72,992,700円）｜屋齡15年內\n一戶建土地≥200㎡、建物≥100㎡；大樓專有面積約40坪優先"]
+    hikari_count = sum(r['region'] == '光之森' for r in rows)
+    blocks = [f"🏡 熊本購屋搜尋狀態\n{report['checked_at']}\n本次候選刊登 {len(rows)} 筆（跨站可能重複）\n一戶建 {house_count} 筆（新築 {new_house_count} 筆）；大樓／新築大樓 {condo_count} 筆。\n🌳 光之森本區 {hikari_count} 筆：屋齡未滿15年（含新築），不限預算與面積；依可讀取的公開列表分頁收集。\n其他區域：預算台幣1,500萬（換算上限72,992,700円）｜屋齡15年內\n一戶建土地≥200㎡、建物≥100㎡；大樓專有面積約40坪優先"]
     for s in report['sources']:
         blocks.append(f"【{s['source']}】{s['status']}\n範圍：{s['scope']}\n詳細頁 {s['discovered']}／候選 {s['matched']}／讀取錯誤 {s['errors']}／無法解析或非公開 {s.get('unreadable', 0)}")
     blocks.append('以下是本次讀取的候選物件；網站刊登不等於仲介已確認仍可售。大樓為面積候選，管理品質與實際室內淨面積待確認。')

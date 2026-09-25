@@ -49,7 +49,7 @@ def load_data():
             tags.append("🌳 大地坪(>70坪)")
         if any(k in str(row["title"]) for k in ["中庭", "コートハウス", "積水", "ダイワ", "邸宅", "平屋"]):
             tags.append("🛡️ 豪邸/平屋/名門")
-        return " ".join(tags) if tags else "優質大宅"
+        return " ".join(tags) if tags else "住宅候選（待確認）"
 
     df["tags"] = df.apply(get_tags, axis=1)
     return df, history_df
@@ -71,7 +71,7 @@ if report_row:
 
 
 st.title("🏡 熊本 JASM 生活圈住宅與高級大樓情報看板")
-st.caption("一戶建：≤約7,299萬円（台幣1,500萬；換算匯率0.2055）、土地≥200㎡、建物≥100㎡｜高級大樓：不限制土地、專有面積約40坪優先｜全部屋齡15年內（含新築）")
+st.caption("光之森本區：屋齡未滿15年（含新築），不限預算、土地與建物面積，依公開來源分頁收集。其他區域：一戶建≤約7,299萬円、土地≥200㎡、建物≥100㎡；大樓專有面積約40坪優先；屋齡15年內。")
 
 if df.empty:
     st.warning("⚠️ 目前資料庫尚無資料，請先在終端機執行 python3 crawler.py 抓取！")
