@@ -2,7 +2,7 @@
 import os
 import secrets
 import sqlite3
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from functools import wraps
 
 from flask import abort, redirect, render_template_string, request, session, url_for
@@ -31,9 +31,17 @@ def install(app):
         return
     app.secret_key = os.environ["FLASK_SECRET_KEY"]
     app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Lax",
-                      SESSION_COOKIE_SECURE=True)
+                      SESSION_COOKIE_SECURE=True, PERMANENT_SESSION_LIFETIME=timedelta(hours=8),
+                      SESSION_REFRESH_EACH_REQUEST=False)
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
     app.jinja_loader = ChoiceLoader([DictLoader({"base.html": PAGE}), app.jinja_loader])
+
+    @app.after_request
+    def private_response(response):
+        response.headers['Cache-Control'] = 'no-store'
+        response.headers['Referrer-Policy'] = 'no-referrer'
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        return response
 
     def require_user(fn):
         @wraps(fn)
@@ -50,6 +58,7 @@ def install(app):
         if not uid:
             abort(401, "連結已使用或過期，請重新向 Bot 索取。")
         session.clear()
+        session.permanent = True
         session["uid"] = uid
         session["csrf"] = secrets.token_urlsafe(24)
         return redirect(url_for("homes"), code=303)

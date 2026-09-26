@@ -3,6 +3,9 @@ import os
 import sqlite3
 import tempfile
 import unittest
+from concurrent.futures import ThreadPoolExecutor
+from unittest.mock import patch
+from datetime import timedelta
 
 from flask import Flask
 
@@ -32,11 +35,13 @@ class MembersTest(unittest.TestCase):
         members.register("user-b")
         app = Flask(__name__)
         install(app)
+        self.app = app
         self.client = app.test_client()
 
     def tearDown(self):
         for key in ("DATABASE_URL", "INVENTORY_DB", "FLASK_SECRET_KEY"):
             os.environ.pop(key, None)
+        members.cached_engine.cache_clear()
         self.tmp.cleanup()
 
     def test_one_time_login_and_member_isolation(self):
@@ -54,6 +59,29 @@ class MembersTest(unittest.TestCase):
         page = self.client.get("/homes")
         self.assertEqual(page.status_code, 200)
         self.assertIn("測試住宅".encode(), page.data)
+
+    def test_concurrent_login_link_is_consumed_once(self):
+        token = members.new_link('user-a')
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            results=list(pool.map(members.consume_link, [token]*4))
+        self.assertEqual(results.count('user-a'),1)
+        self.assertEqual(results.count(None),3)
+
+    def test_postgres_uses_installed_psycopg_driver_and_reuses_pool(self):
+        for prefix in ('postgres://','postgresql://'):
+            with patch.dict(os.environ, {'DATABASE_URL':prefix+'user:password@localhost/test'}):
+                result=members.engine()
+                self.assertEqual(result.dialect.driver,'psycopg')
+                self.assertIs(result,members.engine())
+
+    def test_private_pages_no_cache_and_expired_session_rejected(self):
+        token=members.new_link('user-a')
+        response=self.client.get('/login/'+token)
+        self.assertEqual(response.headers['Cache-Control'],'no-store')
+        self.assertEqual(response.headers['Referrer-Policy'],'no-referrer')
+        self.assertEqual(self.client.get('/homes').status_code,200)
+        self.app.config['PERMANENT_SESSION_LIFETIME']=timedelta(seconds=-1)
+        self.assertEqual(self.client.get('/homes').status_code,401)
 
     def test_price_limit_excludes_and_reason(self):
         profile = members.member("user-b")

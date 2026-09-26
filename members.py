@@ -2,6 +2,7 @@
 import hashlib
 import os
 import secrets
+from functools import lru_cache
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import create_engine, text
@@ -13,8 +14,15 @@ def engine():
         if os.getenv("RENDER"):
             raise RuntimeError("DATABASE_URL is required for member accounts on Render")
         url = "sqlite:///members.local.db"
-    if url.startswith("postgres://"):
-        url = "postgresql://" + url[len("postgres://"):]
+    for prefix in ('postgres://', 'postgresql://'):
+        if url.startswith(prefix):
+            url = 'postgresql+psycopg://' + url[len(prefix):]
+            break
+    return cached_engine(url)
+
+
+@lru_cache(maxsize=8)
+def cached_engine(url):
     return create_engine(url, pool_pre_ping=True)
 
 
@@ -74,9 +82,8 @@ def consume_link(token):
         return None
     digest = hashlib.sha256(token.encode()).hexdigest()
     with engine().begin() as db:
-        row = db.execute(text("SELECT user_id,expires_at FROM login_links WHERE token_hash=:hash"),
+        row = db.execute(text("DELETE FROM login_links WHERE token_hash=:hash RETURNING user_id,expires_at"),
                          {"hash": digest}).first()
-        db.execute(text("DELETE FROM login_links WHERE token_hash=:hash"), {"hash": digest})
     if row and datetime.fromisoformat(row[1]) > datetime.now(timezone.utc):
         return row[0]
     return None
