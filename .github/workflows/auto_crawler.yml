@@ -4,8 +4,9 @@ on:
   push:
     branches: [main]
     paths:
-      - 'crawler.py'
-      - 'line_notify.py'
+      - '*.py'
+      - 'requirements.txt'
+      - '.github/workflows/auto_crawler.yml'
   schedule:
     - cron: '0 0 * * *'
   workflow_dispatch:
@@ -13,12 +14,20 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: kumamoto-inventory-main
+  cancel-in-progress: false
+
 jobs:
   scrape-and-update:
     runs-on: ubuntu-latest
+    timeout-minutes: 40
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -28,6 +37,9 @@ jobs:
       - name: Install Dependencies
         run: pip install -r requirements.txt
 
+      - name: Regression tests
+        run: python -m unittest discover -v
+
       - name: Run Multi-source Crawler
         run: python crawler.py
 
@@ -36,11 +48,14 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add kumamoto_properties.db
-          git diff --quiet && git diff --staged --quiet || (git commit -m "🤖 自動更新：$(date +'%Y-%m-%d') 多來源房產資料" && git push)
+          if ! git diff --staged --quiet; then
+            git commit -m "自動更新：$(date +'%Y-%m-%d') 多來源房產資料"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
 
       - name: Send LINE notification
         env:
           LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
           LINE_PUSH_TARGET_URL: https://kumamoto-home-track.onrender.com/push-target
         run: python line_notify.py
-

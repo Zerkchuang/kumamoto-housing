@@ -2,21 +2,21 @@ import json
 import sqlite3
 import pandas as pd
 import streamlit as st
+from inventory import load_inventory, verified_history
 
 st.set_page_config(page_title="熊本住宅與高級大樓情報看板", layout="wide", page_icon="🏡")
 
 def load_data():
-    conn = sqlite3.connect("kumamoto_properties.db")
     try:
-        # 預設僅載入 status 為 active 的有效物件
-        df = pd.read_sql_query("SELECT * FROM properties", conn)
-    except Exception:
-        df = pd.DataFrame()
-    history_df = pd.read_sql_query("SELECT * FROM price_history ORDER BY recorded_at DESC", conn)
-    conn.close()
+        rows, report = load_inventory()
+        df = pd.DataFrame(rows)
+        history_df = pd.DataFrame(verified_history())
+    except (ValueError, sqlite3.Error, KeyError) as exc:
+        issue = str(exc) if isinstance(exc, ValueError) else '房源資料暫時無法讀取。'
+        return pd.DataFrame(), pd.DataFrame(), {}, issue
 
     if df.empty:
-        return df, history_df
+        return df, history_df, report, ''
 
     if "property_type" not in df.columns:
         df["property_type"] = "house"
@@ -52,17 +52,11 @@ def load_data():
         return " ".join(tags) if tags else "住宅候選（待確認）"
 
     df["tags"] = df.apply(get_tags, axis=1)
-    return df, history_df
+    return df, history_df, report, ''
 
-df, history_df = load_data()
+df, history_df, report, load_issue = load_data()
 
-with sqlite3.connect("kumamoto_properties.db") as conn:
-    try:
-        report_row = conn.execute("SELECT payload FROM run_report WHERE id=1").fetchone()
-    except sqlite3.OperationalError:
-        report_row = None
-if report_row:
-    report = json.loads(report_row[0])
+if report:
     st.caption("最近抓取：" + report["checked_at"] + "；數量為刊登筆數，跨站可能重複")
     with st.expander("各網站搜尋狀態", expanded=True):
         st.dataframe(pd.DataFrame(report["sources"]).rename(columns={
@@ -74,15 +68,12 @@ st.title("🏡 熊本 JASM 生活圈住宅與高級大樓情報看板")
 st.caption("光之森本區：屋齡未滿15年（含新築），不限預算、土地與建物面積，依公開來源分頁收集。其他區域：一戶建≤約7,299萬円、土地≥200㎡、建物≥100㎡；大樓專有面積約40坪優先；屋齡15年內。")
 
 if df.empty:
-    st.warning("⚠️ 目前資料庫尚無資料，請先在終端機執行 python3 crawler.py 抓取！")
+    st.warning(load_issue or '本輪沒有可驗證的符合條件物件，請查看搜尋狀態或稍後更新。')
     st.stop()
 
 # 側邊欄篩選
 st.sidebar.header("📍 區域與狀態篩選")
-include_inactive = st.sidebar.checkbox("顯示已下架／失效物件", value=False)
-
-if not include_inactive and "status" in df.columns:
-    df = df[df["status"] == "active"]
+st.sidebar.caption('只顯示本輪重新驗證的房源；未核對不代表已售出。')
 
 all_regions = ["全部區域"] + sorted(list(df["region"].dropna().unique()))
 selected_region = st.sidebar.selectbox("選擇主要區域", all_regions)
@@ -124,7 +115,7 @@ c4.metric("目前分區", selected_region)
 
 st.markdown("---")
 
-tab1, tab2 = st.tabs(["📋 物件一覽表", "📉 降價歷史追蹤"])
+tab1, tab2 = st.tabs(["📋 物件一覽表", "📉 已驗證價格紀錄"])
 
 with tab1:
     st.subheader(f"🏠 【{selected_region}】有效在架住宅一覽")
@@ -151,7 +142,8 @@ with tab1:
     )
 
 with tab2:
-    st.subheader("📉 最新降價履歷")
+    st.subheader("📉 已驗證價格紀錄（含首次刊登、重新建立基準與漲跌）")
+    st.caption('舊解析器的紀錄尚未驗證，暫不拿來判斷降價。')
     if not history_df.empty:
         m_hist = pd.merge(history_df, df[["property_id", "title", "region", "url"]], on="property_id", how="inner")
         m_hist["price_man"] = (m_hist["price"] / 10_000).astype(int)
@@ -168,4 +160,4 @@ with tab2:
             hide_index=True
         )
     else:
-        st.info("目前尚未有降價異動。")
+        st.info("目前尚未有已驗證價格紀錄。")

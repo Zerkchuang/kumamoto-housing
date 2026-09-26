@@ -4,7 +4,8 @@ import sys
 import sqlite3
 import unicodedata
 import time
-from datetime import datetime
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from urllib.parse import urljoin, urlparse, unquote
 
 import requests
@@ -23,6 +24,7 @@ MIN_HOUSE_LAND = 200
 MIN_HOUSE_BUILDING = 100
 MIN_CONDO_AREA = 70
 PREFERRED_CONDO_AREA = 132.23  # roughly 40 tsubo; preference, not a hard cutoff
+PRICE_BASIS = 'sale_price_field_v1'
 
 # Houses keep the large-lot requirements. Condos use exclusive floor area instead,
 # so they are never incorrectly rejected for not owning 200 m2 of land.
@@ -55,11 +57,37 @@ def is_hikari(address):
 def parse_price(value):
     """Read the first advertised price, including 億; 0 means unknown."""
     value = unicodedata.normalize("NFKC", value).replace(",", "")
-    m = re.search(r"(\d+(?:\.\d+)?)億(?:(\d+(?:\.\d+)?)万)?円", value)
-    if m:
-        return round(float(m[1]) * 100000000 + float(m[2] or 0) * 10000)
-    m = re.search(r"(\d+(?:\.\d+)?)万円", value)
-    return round(float(m[1]) * 10000) if m else 0
+    m = re.search(r"(\d+(?:\.\d+)?)億(?:(\d+(?:\.\d+)?)万)?円|(\d+(?:\.\d+)?)万円", value)
+    if not m:
+        return 0
+    return round(float(m[1]) * 100000000 + float(m[2] or 0) * 10000) if m[1] else round(float(m[3]) * 10000)
+
+
+def sale_field(soup, names):
+    for heading in soup.find_all(['th', 'dt']):
+        label = re.sub(r'\s+', '', heading.get_text())
+        if not any(label.startswith(name) for name in names):
+            continue
+        cell = heading.find_next_sibling(['td', 'dd'])
+        if cell:
+            return cell.get_text(' ', strip=True)
+    return ''
+
+
+def advertised_price(soup):
+    # Titles can contain gift amounts and monthly loan payments. Never parse them as sale prices.
+    value = sale_field(soup, ['販売価格', '物件価格', '価格'])
+    if not value:
+        text = normalize_text(soup)
+        found = re.search(r'(?:^|\s)(?:販売価格|物件価格|価格)\s+([^\n]{1,180})', text)
+        value = found[1] if found else ''
+        value = re.split(r'所在地|間取り|専有面積|土地面積|月々|住宅ローン', value)[0]
+    if re.match(r'\s*(?:価格\s*)?未定', value):
+        return 0
+    price = parse_price(value)
+    if not price:
+        raise ValueError('Sale-price field missing or unreadable; refusing title/monthly-payment fallback')
+    return price
 
 
 def init_db():
@@ -75,11 +103,17 @@ def init_db():
     columns = {row[1] for row in cur.execute("PRAGMA table_info(properties)")}
     if "property_type" not in columns:
         cur.execute("ALTER TABLE properties ADD COLUMN property_type TEXT DEFAULT 'house'")
+    if "price_basis" not in columns:
+        cur.execute("ALTER TABLE properties ADD COLUMN price_basis TEXT DEFAULT 'legacy_unverified'")
     cur.execute(
         """CREATE TABLE IF NOT EXISTS price_history(
         id INTEGER PRIMARY KEY AUTOINCREMENT,property_id TEXT,price INTEGER,
         recorded_at TEXT,FOREIGN KEY(property_id) REFERENCES properties(property_id))"""
     )
+    history_columns = {row[1] for row in cur.execute('PRAGMA table_info(price_history)')}
+    for name, default in [('evidence_version', 'legacy_unverified'), ('event_type', 'unverified')]:
+        if name not in history_columns:
+            cur.execute(f"ALTER TABLE price_history ADD COLUMN {name} TEXT DEFAULT '{default}'")
     conn.commit()
     conn.close()
 
@@ -100,6 +134,18 @@ def first_number(patterns, text):
         if match:
             return float(match.group(1).replace(",", ""))
     return 0.0
+
+
+def field_area(soup, label, largest=False):
+    """Read only the labelled square-metre field, including split HTML units."""
+    value = re.sub(r'\s+', '', unicodedata.normalize('NFKC', sale_field(soup, [label])))
+    value = value.replace('㎡', 'm2').replace('平米', 'm2')
+    match = re.match(r'([\d,]+(?:\.\d+)?)(?:m2)?[~～〜-]([\d,]+(?:\.\d+)?)m2', value)
+    if match:
+        values = [float(v.replace(',', '')) for v in match.groups()]
+        return max(values) if largest else min(values)
+    match = re.match(r'([\d,]+(?:\.\d+)?)m2', value)
+    return float(match.group(1).replace(',', '')) if match else 0.0
 
 
 def parse_region(address, title, fallback):
@@ -144,7 +190,7 @@ def within_age_limit(date_text, strict=False, now=None):
     if not match:
         return False
     built_month = int(match.group(1)) * 12 + int(match.group(2))
-    now = now or datetime.now()
+    now = now or datetime.now(ZoneInfo('Asia/Tokyo'))
     if not 1 <= int(match.group(2)) <= 12:
         return False
     cutoff_month = (now.year - MAX_AGE_YEARS) * 12 + now.month
@@ -152,51 +198,29 @@ def within_age_limit(date_text, strict=False, now=None):
 
 
 def detail(pid, href, label, property_type):
+    from extra_sources import valid_detail_url
     url = urljoin("https://suumo.jp", href.split("?")[0])
+    if not valid_detail_url('suumo_' + pid, url):
+        raise ValueError('Unapproved detail URL')
     response = requests.get(url, headers=HEADERS, timeout=25)
     response.raise_for_status()
     soup = BeautifulSoup(response.text, "html.parser")
     text = normalize_text(soup)
-    if pid not in response.url and pid not in response.text:
+    if not valid_detail_url('suumo_' + pid, response.url):
         raise ValueError("detail identity mismatch")
 
     early_text = text[:2500]
     is_house = property_type in {"house", "house_new"}
     is_new = property_type in {"house_new", "condo_new"}
-    if property_type == "condo_new" and re.search(r"価格\s*未定", early_text[:1000]):
-        price = 0
-    else:
-        price = parse_price(early_text)
-    land = first_number([r"土地面積\s*(\d+(?:\.\d+)?)\s*m2"], text)
-    if property_type == "house_new":
-        land_range = re.search(
-            r"土地面積\s*(\d+(?:\.\d+)?)\s*(?:m2)?\s*[～~-]\s*(\d+(?:\.\d+)?)\s*m2",
-            text,
-        )
-        if land_range:
-            land = max(float(land_range.group(1)), float(land_range.group(2)))
-    if is_house:
-        area = first_number([r"建物面積\s*(\d+(?:\.\d+)?)\s*m2"], text)
-        if property_type == "house_new":
-            area_range = re.search(
-                r"建物面積\s*(\d+(?:\.\d+)?)\s*(?:m2)?\s*[～~-]\s*(\d+(?:\.\d+)?)\s*m2",
-                text,
-            )
-            if area_range:
-                area = max(float(area_range.group(1)), float(area_range.group(2)))
-    else:
-        # For a new development with a size range, use the largest offered unit so
-        # developments containing a 70 m2+ candidate remain on the watchlist.
-        range_match = re.search(
-            r"専有面積\s*(\d+(?:\.\d+)?)\s*(?:m2)?\s*[～~-]\s*(\d+(?:\.\d+)?)\s*m2",
-            text,
-        )
-        area = float(range_match.group(2)) if range_match else first_number(
-            [r"専有面積\s*(\d+(?:\.\d+)?)\s*m2"], text
-        )
+    price = advertised_price(soup)
+    land = field_area(soup, '土地面積', largest=is_new)
+    area = field_area(soup, '建物面積' if is_house else '専有面積', largest=is_new)
 
     layout_match = re.search(r"(\d+LDK(?:\+S（納戸）)?(?:\s*[～~-]\s*\d+LDK)?|\d+DK)", text)
-    completed = build_date(text, is_new=is_new)
+    date_field = sale_field(soup, ['完成時期', '完成予定時期', '築年月'])
+    compact_date = re.sub(r'\s+', '', unicodedata.normalize('NFKC', date_field))
+    date_match = re.search(r'(?:19|20)\d{2}年\d{1,2}月', compact_date)
+    completed = date_match.group(0) if date_match else build_date(text, is_new=is_new)
     address_match = re.search(
         r"(熊本県.*?)(?:\s*地図を見る|\s*\[\s*地図\s*\]|\s+TOP\s)", early_text
     )
@@ -208,8 +232,10 @@ def detail(pid, href, label, property_type):
     title = " ".join(heading.stripped_strings) if heading else (
         soup.title.get_text(" ", strip=True) if soup.title else f"SUUMO {pid}"
     )
-    address = address_match.group(1).strip() if address_match else label
-    region = parse_region(address, title, label)
+    address = sale_field(soup, ['所在地']) or (address_match.group(1).strip() if address_match else '')
+    if not address:
+        raise ValueError('Property address missing; refusing source-label fallback')
+    region = parse_region(address, title, '')
 
     print(
         f"PARSE {pid}: type={property_type} price={price} land={land} "
@@ -252,6 +278,7 @@ def detail(pid, href, label, property_type):
         "layout": layout_match.group(1) if layout_match else "",
         "build_year": completed,
         "property_type": property_type,
+        "price_basis": PRICE_BASIS,
     }
 
 
@@ -375,17 +402,15 @@ def scrape(label, property_type, url, report=None):
     return items
 
 
-def save(items):
-    if not items:
-        raise RuntimeError("Verified inventory is 0; refusing to send stale data")
+def save(items, report=None):
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
-    today = datetime.now().strftime("%Y-%m-%d")
+    today = datetime.now(ZoneInfo('Asia/Tokyo')).strftime("%Y-%m-%d")
     ids = {item["property_id"] for item in items}
     new = changed = 0
     for item in items:
         old = cur.execute(
-            "SELECT current_price FROM properties WHERE property_id=?", (item["property_id"],)
+            "SELECT current_price,price_basis FROM properties WHERE property_id=?", (item["property_id"],)
         ).fetchone()
         if old is None:
             new += 1
@@ -393,34 +418,35 @@ def save(items):
                 """INSERT INTO properties(
                 property_id,title,url,region,address,current_price,land_area,
                 building_area,layout,build_year,first_seen_date,last_seen_date,
-                status,property_type) VALUES(?,?,?,?,?,?,?,?,?,?,?,?, 'active',?)""",
+                status,property_type,price_basis) VALUES(?,?,?,?,?,?,?,?,?,?,?,?, 'active',?,?)""",
                 (
                     item["property_id"], item["title"], item["url"], item["region"],
                     item["address"], item["current_price"], item["land_area"],
                     item["building_area"], item["layout"], item["build_year"],
-                    today, today, item["property_type"],
+                    today, today, item["property_type"], item['price_basis'],
                 ),
             )
             cur.execute(
-                "INSERT INTO price_history(property_id,price,recorded_at) VALUES(?,?,?)",
-                (item["property_id"], item["current_price"], today),
+                "INSERT INTO price_history(property_id,price,recorded_at,evidence_version,event_type) VALUES(?,?,?,?,?)",
+                (item["property_id"], item["current_price"], today, item['price_basis'], 'initial'),
             )
         else:
-            if old[0] != item["current_price"]:
-                changed += 1
+            if old[0] != item["current_price"] or old[1] != item['price_basis']:
+                event_type = 'rebaseline' if old[1] != item['price_basis'] else ('price_change' if old[0] and item['current_price'] else 'price_announced')
+                changed += int(event_type == 'price_change')
                 cur.execute(
-                    "INSERT INTO price_history(property_id,price,recorded_at) VALUES(?,?,?)",
-                    (item["property_id"], item["current_price"], today),
+                    "INSERT INTO price_history(property_id,price,recorded_at,evidence_version,event_type) VALUES(?,?,?,?,?)",
+                    (item["property_id"], item["current_price"], today, item['price_basis'], event_type),
                 )
             cur.execute(
                 """UPDATE properties SET title=?,url=?,region=?,address=?,current_price=?,
                 land_area=?,building_area=?,layout=?,build_year=?,last_seen_date=?,
-                property_type=?,status='active' WHERE property_id=?""",
+                property_type=?,price_basis=?,status='active' WHERE property_id=?""",
                 (
                     item["title"], item["url"], item["region"], item["address"],
                     item["current_price"], item["land_area"], item["building_area"],
                     item["layout"], item["build_year"], today, item["property_type"],
-                    item["property_id"],
+                    item['price_basis'], item["property_id"],
                 ),
             )
     for (pid,) in cur.execute(
@@ -428,6 +454,9 @@ def save(items):
     ).fetchall():
         if pid not in ids:
             cur.execute("UPDATE properties SET status='unverified' WHERE property_id=?", (pid,))
+    if report is not None:
+        cur.execute('CREATE TABLE IF NOT EXISTS run_report(id INTEGER PRIMARY KEY, payload TEXT)')
+        cur.execute('INSERT OR REPLACE INTO run_report VALUES(1,?)', (json.dumps(report, ensure_ascii=False),))
     conn.commit()
     conn.close()
     print(f"OK verified_inventory={len(items)} new={new} price_changes={changed}")
@@ -460,13 +489,9 @@ if __name__ == "__main__":
             inventory.append(item)
             seen_ids.add(item["property_id"])
     statuses.extend(reports)
-    if inventory:
-        save(inventory)
     # Persist every source outcome, including failed/empty runs. Notifications use
     # this exact run's IDs, never yesterday's or an earlier same-day inventory.
-    payload = dict(checked_at=datetime.now().isoformat(timespec="seconds") + " UTC",
-                   sources=statuses, property_ids=sorted(seen_ids), count=len(inventory))
-    with sqlite3.connect(DB_NAME) as conn:
-        conn.execute("CREATE TABLE IF NOT EXISTS run_report(id INTEGER PRIMARY KEY, payload TEXT)")
-        conn.execute("INSERT OR REPLACE INTO run_report VALUES(1, ?)", (json.dumps(payload, ensure_ascii=False),))
+    payload = dict(checked_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                   sources=statuses, property_ids=sorted(seen_ids), count=len(inventory), price_parser_version=PRICE_BASIS)
+    save(inventory, payload)
     print("RUN_REPORT " + json.dumps(payload, ensure_ascii=False), flush=True)

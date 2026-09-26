@@ -4,27 +4,23 @@ import sqlite3
 import hmac
 import hashlib
 import time
+import uuid
 from urllib.parse import urlparse
 import requests
 from extra_sources import valid_detail_url
+from inventory import load_inventory
 
 DB_NAME = 'kumamoto_properties.db'
 
 
 def load_report():
-    with sqlite3.connect(DB_NAME) as conn:
-        row = conn.execute('SELECT payload FROM run_report WHERE id=1').fetchone()
-    if not row:
-        raise RuntimeError('No report from current crawl')
-    return json.loads(row[0])
+    return load_inventory(DB_NAME)[1]
 
 
 def get_matching_properties(report):
-    ids = set(report['property_ids'])
-    with sqlite3.connect(DB_NAME) as conn:
-        conn.row_factory = sqlite3.Row
-        rows = conn.execute("SELECT * FROM properties WHERE status='active'").fetchall()
-    rows = [r for r in rows if r['property_id'] in ids]
+    rows, current = load_inventory(DB_NAME)
+    if current != report:
+        raise RuntimeError('Inventory changed during notification; retry with current report')
     for row in rows:
         if not valid_detail_url(row['property_id'], row['url']):
             raise RuntimeError('Unverified detail URL: ' + row['property_id'])
@@ -98,10 +94,22 @@ def push_line(messages):
         raise RuntimeError('LINE push target not configured')
     # Five messages per API call; never silently truncate the remaining results.
     for start in range(0, len(messages), 5):
-        r = requests.post('https://api.line.me/v2/bot/message/push',
-            headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
-            json={'to': target, 'messages': [{'type': 'text', 'text': part} for part in messages[start:start+5]]}, timeout=20)
-        r.raise_for_status()
+        payload = {'to': target, 'messages': [{'type': 'text', 'text': part} for part in messages[start:start+5]]}
+        retry_key = str(uuid.uuid4())
+        for attempt in range(3):
+            try:
+                r = requests.post('https://api.line.me/v2/bot/message/push',
+                    headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json',
+                             'X-Line-Retry-Key': retry_key}, json=payload, timeout=20)
+                if r.status_code == 409 and r.headers.get('x-line-accepted-request-id'):
+                    break
+                r.raise_for_status()
+                break
+            except requests.RequestException as exc:
+                code = exc.response.status_code if exc.response is not None else 0
+                if attempt == 2 or (code and code < 500):
+                    raise
+                time.sleep(2 ** attempt)
         print(f'LINE batch {start//5+1} accepted: HTTP {r.status_code}')
     print(f'LINE notification sent successfully: {len(messages)} message chunks')
 

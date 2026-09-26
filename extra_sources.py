@@ -95,7 +95,7 @@ def parse_detail(soup, pid, url, config):
     title = text(title_node).split('｜')[0] if title_node else address
     return dict(property_id=pid, title=title, url=url, region=region, address=address,
                 current_price=price, land_area=land, building_area=area,
-                layout=field('間取り'), build_year=date, property_type=kind), 'matched'
+                layout=field('間取り'), build_year=date, property_type=kind, price_basis=config.PRICE_BASIS), 'matched'
 
 
 def collect_broker(source, name, url, scope, config):
