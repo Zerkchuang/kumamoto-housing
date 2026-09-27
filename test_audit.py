@@ -21,9 +21,6 @@ from webhook_guard import allow_gpt
 
 class AuditTest(unittest.TestCase):
     def setUp(self):
-        cleared = patch('inventory.flood_cleared', return_value=True)
-        cleared.start()
-        self.addCleanup(cleared.stop)
         self.tmp = tempfile.TemporaryDirectory()
         self.path = self.tmp.name + '/inventory.db'
         self.env = patch.dict(os.environ, {'LINE_CHANNEL_ACCESS_TOKEN':'test-token',
