@@ -1,0 +1,233 @@
+{
+  "policy": "Exclude documented past flooding and mapped flood/pluvial/landslide exposure. Missing address-specific evidence remains on hold; no assumption of safety.",
+  "properties": {
+    "suumo_20768563": {
+      "listing_address": "熊本県菊池郡菊陽町大字久保田34",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "suumo_77849825": {
+      "listing_address": "熊本県合志市野々島 地図を見る",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "suumo_20172434": {
+      "listing_address": "熊本県合志市幾久富１６５６－７２ 地図を見る",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "suumo_77150237": {
+      "listing_address": "熊本県菊池郡菊陽町光の森１ 地図を見る",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "suumo_77145312": {
+      "listing_address": "熊本県菊池郡菊陽町光の森１ 地図を見る",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "suumo_76563489": {
+      "listing_address": "熊本県熊本市東区保田窪５ 地図を見る",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "suumo_21614202": {
+      "listing_address": "熊本県熊本市東区画図町大字重富 地図を見る",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "suumo_67736232": {
+      "listing_address": "熊本県熊本市中央区水前寺公園780番1、780番2、781番、782番1、782番2、782番3、782番4（地番） 地図を見る",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "suumo_67732984": {
+      "listing_address": "熊本県熊本市中央区水前寺１丁目410-1（地番） 地図を見る",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "suumo_67732005": {
+      "listing_address": "熊本県熊本市中央区桜町2-11（住居表示） 地図を見る",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "tatara_15325": {
+      "listing_address": "熊本県熊本市北区楡木2丁目",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "tatara_14989": {
+      "listing_address": "熊本県熊本市中央区大江3丁目",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "tatara_14553": {
+      "listing_address": "熊本県熊本市東区桜木1丁目",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "tatara_14535": {
+      "listing_address": "熊本県熊本市東区戸島本町",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "tatara_14095": {
+      "listing_address": "熊本県合志市合生",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "tatara_14051": {
+      "listing_address": "熊本県熊本市北区植木町田底",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "tatara_13780": {
+      "listing_address": "熊本県熊本市東区佐土原3丁目",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "tatara_13418": {
+      "listing_address": "熊本県熊本市中央区十禅寺4丁目",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "tatara_15259": {
+      "listing_address": "熊本県熊本市東区秋津1丁目",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "tatara_9874": {
+      "listing_address": "熊本県熊本市東区長嶺南7丁目",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "suumo_20002205": {
+      "listing_address": "熊本県菊池郡菊陽町大字久保田",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "suumo_78573600": {
+      "listing_address": "熊本県菊池郡菊陽町大字久保田34",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "suumo_78195537": {
+      "listing_address": "熊本県合志市豊岡2000-2928",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "suumo_78609614": {
+      "listing_address": "熊本県合志市野々島5388番33　他",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "suumo_20777694": {
+      "listing_address": "熊本県合志市野々島字笹原5490-15",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "suumo_20742058": {
+      "listing_address": "熊本県熊本市東区戸島６",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "suumo_20226447": {
+      "listing_address": "熊本県熊本市東区戸島６-4448",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "suumo_20330090": {
+      "listing_address": "熊本県熊本市東区戸島６",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "suumo_21463418": {
+      "listing_address": "熊本県熊本市北区八景水谷３",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "suumo_20624112": {
+      "listing_address": "熊本県熊本市北区高平１-136-1",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "suumo_20813836": {
+      "listing_address": "熊本県菊池郡菊陽町大字辛川1221-8、9、11",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "suumo_20956410": {
+      "listing_address": "熊本県熊本市北区武蔵ケ丘１-１－２５付近",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "tatara_15579": {
+      "listing_address": "熊本県熊本市中央区南熊本4丁目",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "suumo_21305060": {
+      "listing_address": "熊本県熊本市東区秋津１",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "suumo_21720735": {
+      "listing_address": "熊本県菊池郡菊陽町大字辛川１１１６付近",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "suumo_20563785": {
+      "listing_address": "熊本県菊池郡菊陽町大字久保田３４付近",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "suumo_21667822": {
+      "listing_address": "熊本県熊本市北区八景水谷３-１０－９７付近",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    },
+    "suumo_21527218": {
+      "listing_address": "熊本県熊本市中央区島崎１",
+      "status": "pending",
+      "reason": "尚缺地址／地番定位及歷史淹水與災害圖逐址核對；不可視為安全",
+      "sources": []
+    }
+  }
+}

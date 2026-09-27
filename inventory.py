@@ -6,6 +6,7 @@ from pathlib import Path
 
 from crawler import PRICE_BASIS, is_hikari, within_age_limit
 from extra_sources import valid_detail_url
+from flood_policy import flood_cleared
 
 
 def load_inventory(path='kumamoto_properties.db', now=None):
@@ -22,9 +23,12 @@ def load_inventory(path='kumamoto_properties.db', now=None):
             raise ValueError('房源資料已超過48小時未更新，暫不列為最新房源。')
         ids = set(report.get('property_ids', []))
         rows = [dict(r) for r in db.execute("SELECT * FROM properties WHERE status='active'")]
-    return [r for r in rows if r['property_id'] in ids and r.get('price_basis') == PRICE_BASIS
+    candidates = [r for r in rows if r['property_id'] in ids and r.get('price_basis') == PRICE_BASIS
             and valid_detail_url(r['property_id'], r['url'])
-            and within_age_limit(r['build_year'], strict=is_hikari(r['address']))], report
+            and within_age_limit(r['build_year'], strict=is_hikari(r['address']))]
+    cleared = [r for r in candidates if flood_cleared(r)]
+    report['flood_review'] = {'held':len(candidates)-len(cleared), 'cleared':len(cleared)}
+    return cleared, report
 
 
 def verified_history(path='kumamoto_properties.db'):
