@@ -24,7 +24,7 @@ MIN_HOUSE_LAND = 200
 MIN_HOUSE_BUILDING = 100
 MIN_CONDO_AREA = 70
 PREFERRED_CONDO_AREA = 132.23  # roughly 40 tsubo; preference, not a hard cutoff
-PRICE_BASIS = 'sale_price_field_v1'
+PRICE_BASIS = 'sale_price_field_v2'
 
 # Houses keep the large-lot requirements. Condos use exclusive floor area instead,
 # so they are never incorrectly rejected for not owning 200 m2 of land.
@@ -39,13 +39,15 @@ TARGET_SOURCES = [
     ("合志市", "house_new", "https://suumo.jp/ikkodate/kumamoto/sc_koshi/"),
     ("熊本市東區", "house_new", "https://suumo.jp/ikkodate/kumamoto/sc_kumamotoshihigashi/"),
     ("熊本市北區", "house_new", "https://suumo.jp/ikkodate/kumamoto/sc_kumamotoshikita/"),
+    ("熊本市中央區", "house", "https://suumo.jp/chukoikkodate/kumamoto/sc_kumamotoshichuo/"),
+    ("熊本市中央區", "house_new", "https://suumo.jp/ikkodate/kumamoto/sc_kumamotoshichuo/"),
     ("熊本市中央區", "condo", "https://suumo.jp/ms/chuko/kumamoto/sc_kumamotoshichuo/"),
     ("熊本市東區", "condo", "https://suumo.jp/ms/chuko/kumamoto/sc_kumamotoshihigashi/"),
     ("熊本市北區", "condo", "https://suumo.jp/ms/chuko/kumamoto/sc_kumamotoshikita/"),
     ("熊本市新築大樓", "condo_new", "https://suumo.jp/ms/shinchiku/kumamoto/"),
 ]
 CONDO_REGIONS = {"熊本市中央區", "熊本市東區", "熊本市北區", "光之森"}
-HOUSE_REGIONS = {"菊陽町", "光之森", "光之森周邊", "合志市", "熊本市東區", "熊本市北區"}
+HOUSE_REGIONS = {"熊本市中央區", "菊陽町", "光之森", "光之森周邊", "合志市", "熊本市東區", "熊本市北區"}
 
 
 def is_hikari(address):
@@ -77,6 +79,10 @@ def sale_field(soup, names):
 def advertised_price(soup):
     # Titles can contain gift amounts and monthly loan payments. Never parse them as sale prices.
     value = sale_field(soup, ['販売価格', '物件価格', '価格'])
+    if not value:
+        # SUUMO mobile exposes an explicit price component without a visible label.
+        mobile_price = soup.select_one('.basic-info-list__item__text--kakaku')
+        value = mobile_price.get_text(' ', strip=True) if mobile_price else ''
     if not value:
         text = normalize_text(soup)
         found = re.search(r'(?:^|\s)(?:販売価格|物件価格|価格)\s+([^\n]{1,180})', text)

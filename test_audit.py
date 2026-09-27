@@ -58,6 +58,10 @@ class AuditTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             crawler.advertised_price(BeautifulSoup('<h1>月々6万円のみ</h1>','html.parser'))
 
+    def test_mobile_explicit_sale_price_component(self):
+        html='<h1>特典1万円 月々5万円</h1><span class="basic-info-list__item__text--kakaku">2億6037万円</span>'
+        self.assertEqual(crawler.advertised_price(BeautifulSoup(html,'html.parser')),260370000)
+
     def test_full_detail_split_units_and_date_hints(self):
         html = '<h1>特典1万円</h1><table>' + ''.join(
             '<tr><th>'+label+'</th><td>'+value+'</td></tr>' for label,value in [
