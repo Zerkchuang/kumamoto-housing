@@ -42,6 +42,28 @@ def push(target, message):
       json={"to":target,"messages":[{"type":"text","text":message[:4500]}]},timeout=20)
     r.raise_for_status()
 
+def inventory_pages(rows, report):
+    """One section per region; split on property boundaries, never drop verified rows."""
+    priority=("菊陽町","熊本市東區","熊本市北區","熊本市中央區","光之森","合志市")
+    regions=sorted({r["region"] for r in rows}, key=lambda name:(name not in priority, priority.index(name) if name in priority else name))
+    pages=[f"房源更新完成｜{report['checked_at']}\\n已驗證 {len(rows)} 筆，以下按區域分段列出全部物件。"]
+    for region in regions:
+        group=sorted((r for r in rows if r["region"]==region),
+                     key=lambda r:(r["current_price"]==0,r["current_price"]))
+        heading=f"【{region}｜{len(group)} 筆】"
+        part=heading
+        for r in group:
+            price=f"{r['current_price']/10000:,.0f}萬円" if r["current_price"] else "價格未定"
+            block=(f"\\n\\n{r['title'][:100]}\\n{price}｜建物／專有面積{r['building_area']}㎡｜"
+                   f"{r['build_year']}\\n{r['url']}")
+            if len(part)+len(block)>4200:
+                pages.append(part)
+                part=heading+"（續）"
+            part+=block
+        pages.append(part)
+    pages.append(f"全部區域已送完，共 {len(rows)} 筆。刊登狀態仍須向仲介確認。")
+    return pages
+
 def refresh_homes(target):
     app.logger.info('Housing refresh started')
     try:
@@ -56,14 +78,19 @@ def refresh_homes(target):
                 rows, report=load_inventory(DB)
                 sources=report.get("sources",[])
                 failures=sum(x.get("status") != "完成" for x in sources)
-                message=(f"房源更新完成｜{report['checked_at']}\n"
-                         f"已驗證 {len(rows)} 筆；來源異常／未完成 {failures}/{len(sources)}。\n\n"
-                         + homes(limit=8))
+                pages=inventory_pages(rows,report)
+                pages[0]+=f"\\n來源異常／未完成 {failures}/{len(sources)}。"
+                message=None
             except (ValueError, sqlite3.Error, KeyError) as exc:
                 message=f"爬蟲已執行，但結果未通過驗證：{exc}"
         try:
-            push(target,message)
-            app.logger.info("Housing refresh result pushed")
+            if message is None:
+                for page in pages:
+                    push(target,page)
+                app.logger.info("Housing refresh pushed %s pages", len(pages))
+            else:
+                push(target,message)
+                app.logger.info("Housing refresh result pushed")
         except requests.RequestException: app.logger.exception("LINE refresh push failed")
     except subprocess.TimeoutExpired:
         try: push(target,"房源更新逾時；本次無法確認最新結果，請稍後重試。")
@@ -95,7 +122,7 @@ def homes(region=None, limit=8):
 
 def help_text():
     return """Maple 助理可直接使用：
-• 更新房源／更新資訊：立即重新查詢來源，完成後推送結果（可能需要幾分鐘）
+• 更新房源／更新資訊：重新查詢來源，按區域分段推送所有已驗證房源
 • 最新房源／房源：列出資料庫中符合條件的已驗證熊本物件
 • 光之森：列出光之森本區、屋齡未滿15年的物件
 • 購屋比較：直接問「幫我比較目前房源」
