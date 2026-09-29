@@ -56,7 +56,7 @@ def inventory_pages(rows, report):
     """One section per region; split on property boundaries, never drop verified rows."""
     priority=("菊陽町","熊本市東區","熊本市北區","熊本市中央區","光之森","合志市")
     regions=sorted({r["region"] for r in rows}, key=lambda name:(name not in priority, priority.index(name) if name in priority else name))
-    pages=[f"房源更新完成｜{report['checked_at']}\n已驗證 {len(rows)} 筆，以下按區域分段列出全部物件。\n稅金為粗略預留：一次性按售價0.5–3%，年稅按0.3–1.2%；實際依固定資產稅評價額、地段與減免。"]
+    pages=[f"房源更新完成｜{report['checked_at']}\n本次已核對 {len(rows)} 筆，以下按區域分段列出這次驗證通過的全部物件；來源有未覆蓋頁面或錯誤時，不代表市場全部。\n稅金為粗略預留：一次性按售價0.5–3%，年稅按0.3–1.2%；實際依固定資產稅評價額、地段與減免。"]
     for region in regions:
         group=sorted((r for r in rows if r["region"]==region),
                      key=lambda r:(r["current_price"]==0,r["current_price"]))
@@ -90,6 +90,9 @@ def refresh_homes(target):
                 failures=sum(x.get("status") != "完成" for x in sources)
                 pages=inventory_pages(rows,report)
                 pages[0]+=f"\n來源異常／未完成 {failures}/{len(sources)}。"
+                if failures:
+                    names=[x.get("source","未知") for x in sources if x.get("status") != "完成"]
+                    pages.append("本次未完整來源："+"、".join(names)[:3700])
                 message=None
             except (ValueError, sqlite3.Error, KeyError) as exc:
                 message=f"爬蟲已執行，但結果未通過驗證：{exc}"
