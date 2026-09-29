@@ -1,4 +1,4 @@
-import os, json, hmac, hashlib, base64, sqlite3, requests
+import os, json, hmac, hashlib, base64, sqlite3, requests, threading, subprocess, sys
 from flask import Flask, request, abort
 from inventory import load_inventory
 from webhook_guard import claim_event, allow_gpt
@@ -10,6 +10,7 @@ SECRET=os.environ["LINE_CHANNEL_SECRET"]
 OPENAI_KEY=os.environ.get("OPENAI_API_KEY","")
 DB=os.environ.get("DB_NAME","kumamoto_properties.db")
 MODEL=os.environ.get("OPENAI_MODEL","gpt-5.6-luna")
+_refresh_lock=threading.Lock()
 
 PROFILE="""你是 Maple 的 LINE 專屬助理。用繁體中文、直接、精簡、有結論。
 常用情境：
@@ -18,7 +19,7 @@ PROFILE="""你是 Maple 的 LINE 專屬助理。用繁體中文、直接、精�
 3. 投資：短線看3個月內籌碼，長線看3個月以上基本面；提醒資料日期與風險，不捏造即時行情。
 4. 日本工作/日文：會議、安全、品質、設備與職場日語；日文可附羅馬拼音。
 5. 旅遊：偏好有效率、舒適、少繞路的規劃。
-若問題需要即時網路、ChatGPT記憶、外部工具或資料庫沒有的資料，要清楚說目前 LINE bot 沒有該即時資料，不可假裝已查到。"""
+使用者要求更新房源時由專用指令執行；不要自行聲稱已更新。其他需要即時網路、ChatGPT記憶、外部工具或資料庫沒有的資料，要清楚說目前 LINE bot 沒有該即時資料，不可假裝已查到。"""
 
 def valid(body,sig):
     mac=hmac.new(SECRET.encode(),body,hashlib.sha256).digest()
@@ -34,6 +35,36 @@ def reply(token,text):
       headers={"Authorization":f"Bearer {TOKEN}","Content-Type":"application/json"},
       json={"replyToken":token,"messages":[{"type":"text","text":part} for part in chunks]},timeout=20)
     r.raise_for_status()
+
+def push(target, message):
+    r=requests.post("https://api.line.me/v2/bot/message/push",
+      headers={"Authorization":f"Bearer {TOKEN}","Content-Type":"application/json"},
+      json={"to":target,"messages":[{"type":"text","text":message[:4500]}]},timeout=20)
+    r.raise_for_status()
+
+def refresh_homes(target):
+    try:
+        run=subprocess.run([sys.executable,"crawler.py"],cwd=os.path.dirname(os.path.abspath(__file__)),
+                           capture_output=True,text=True,timeout=900)
+        if run.returncode:
+            message="房源更新失敗；本次沒有產生新資料。請檢查爬蟲執行紀錄。"
+        else:
+            try:
+                rows, report=load_inventory(DB)
+                sources=report.get("sources",[])
+                failures=sum(x.get("status") != "完成" for x in sources)
+                message=(f"房源更新完成｜{report['checked_at']}\\n"
+                         f"已驗證 {len(rows)} 筆；來源異常／未完成 {failures}/{len(sources)}。\\n\\n"
+                         + homes(limit=8))
+            except (ValueError, sqlite3.Error, KeyError) as exc:
+                message=f"爬蟲已執行，但結果未通過驗證：{exc}"
+        try: push(target,message)
+        except requests.RequestException: app.logger.exception("LINE refresh push failed")
+    except subprocess.TimeoutExpired:
+        try: push(target,"房源更新逾時；本次無法確認最新結果，請稍後重試。")
+        except requests.RequestException: app.logger.exception("LINE timeout push failed")
+    finally:
+        _refresh_lock.release()
 
 def homes(region=None, limit=8):
     try:
@@ -55,7 +86,7 @@ def homes(region=None, limit=8):
 
 def help_text():
     return """Maple 助理可直接使用：
-• 最新房源／房源：列出符合條件的已驗證熊本物件
+• 更新房源／更新資訊：立即重新查詢來源，完成後推送結果（可能需要幾分鐘）\n• 最新房源／房源：列出資料庫中符合條件的已驗證熊本物件
 • 光之森：列出光之森本區、屋齡未滿15年的物件
 • 購屋比較：直接問「幫我比較目前房源」
 • 半導體：問 HBM、DRAM、NAND、設備、材料、AI 供應鏈
@@ -133,6 +164,19 @@ def webhook():
           kind={"group":"群組","room":"多人聊天室","user":"個人聊天室"}.get(source.get("type"),source.get("type","未知"))
           ans=(f"目前是{kind}。\n推播目標 ID：\n{target}\n\n請把此 ID 設為 GitHub Actions Secret：LINE_USER_ID"
                if target else "目前無法取得這個聊天室的推播目標 ID。")
+        elif q in ("更新","更新資訊","更新房源","重新搜尋房源","刷新房源") or ("更新" in q and any(w in q for w in ("房源","物件","熊本","資料"))):
+          target=source.get("groupId") or source.get("roomId") or source.get("userId")
+          if not target:
+            ans="無法取得這個聊天室的推播目標，更新尚未啟動。"
+          elif not _refresh_lock.acquire(blocking=False):
+            ans="房源更新正在執行；完成後會在這個聊天室回報。"
+          else:
+            try:
+              threading.Thread(target=refresh_homes,args=(target,),daemon=True).start()
+              ans="已開始重新查詢房源來源；完成後會在這個聊天室回報核對時間、筆數及物件連結。"
+            except Exception:
+              _refresh_lock.release()
+              ans="房源更新無法啟動；請稍後重試。"
         elif q in ("最新房源","房源","找房","物件"): ans=homes()
         elif q in ("光之森","光の森","光之森房源"): ans=homes(region='光之森',limit=20)
         elif q in ("功能","選單","help","幫助","使用說明"): ans=help_text()
