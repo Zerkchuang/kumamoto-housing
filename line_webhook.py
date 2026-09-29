@@ -46,7 +46,7 @@ def inventory_pages(rows, report):
     """One section per region; split on property boundaries, never drop verified rows."""
     priority=("菊陽町","熊本市東區","熊本市北區","熊本市中央區","光之森","合志市")
     regions=sorted({r["region"] for r in rows}, key=lambda name:(name not in priority, priority.index(name) if name in priority else name))
-    pages=[f"房源更新完成｜{report['checked_at']}\\n已驗證 {len(rows)} 筆，以下按區域分段列出全部物件。"]
+    pages=[f"房源更新完成｜{report['checked_at']}\n已驗證 {len(rows)} 筆，以下按區域分段列出全部物件。"]
     for region in regions:
         group=sorted((r for r in rows if r["region"]==region),
                      key=lambda r:(r["current_price"]==0,r["current_price"]))
@@ -54,8 +54,8 @@ def inventory_pages(rows, report):
         part=heading
         for r in group:
             price=f"{r['current_price']/10000:,.0f}萬円" if r["current_price"] else "價格未定"
-            block=(f"\\n\\n{r['title'][:100]}\\n{price}｜建物／專有面積{r['building_area']}㎡｜"
-                   f"{r['build_year']}\\n{r['url']}")
+            block=(f"\n\n{r['title'][:100]}\n{price}｜建物／專有面積{r['building_area']}㎡｜"
+                   f"{r['build_year']}\n{r['url']}")
             if len(part)+len(block)>4200:
                 pages.append(part)
                 part=heading+"（續）"
@@ -79,7 +79,7 @@ def refresh_homes(target):
                 sources=report.get("sources",[])
                 failures=sum(x.get("status") != "完成" for x in sources)
                 pages=inventory_pages(rows,report)
-                pages[0]+=f"\\n來源異常／未完成 {failures}/{len(sources)}。"
+                pages[0]+=f"\n來源異常／未完成 {failures}/{len(sources)}。"
                 message=None
             except (ValueError, sqlite3.Error, KeyError) as exc:
                 message=f"爬蟲已執行，但結果未通過驗證：{exc}"
