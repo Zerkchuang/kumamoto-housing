@@ -29,6 +29,13 @@ def get_matching_properties(report):
         r['region'], r['property_type'], r['current_price']))
 
 
+def tax_budget(price):
+    if not price:
+        return '稅金粗估：價格未定，待取得售價與課稅評價額'
+    return (f'稅金預留：購入後一次性約{round(price*.005/10000)}–{round(price*.03/10000)}萬円；'
+            f'每年約{round(price*.003/10000)}–{round(price*.012/10000)}萬円')
+
+
 def build_messages(report, rows):
     house_count = sum(r['property_type'] in {'house', 'house_new'} for r in rows)
     new_house_count = sum(r['property_type'] == 'house_new' for r in rows)
@@ -38,7 +45,13 @@ def build_messages(report, rows):
     for s in report['sources']:
         blocks.append(f"【{s['source']}】{s['status']}\n範圍：{s['scope']}\n詳細頁 {s['discovered']}／候選 {s['matched']}／讀取錯誤 {s['errors']}／無法解析或非公開 {s.get('unreadable', 0)}")
     blocks.append('以下是本次讀取的候選物件；網站刊登不等於仲介已確認仍可售。大樓為面積候選，管理品質與實際室內淨面積待確認。')
+    priority=('菊陽町','熊本市東區','熊本市北區','熊本市中央區','光之森','合志市')
+    rows=sorted(rows,key=lambda r:(r['region'] not in priority, priority.index(r['region']) if r['region'] in priority else r['region'],r['current_price']==0,r['current_price']))
+    current_region=None
     for r in rows:
+        if r['region'] != current_region:
+            current_region=r['region']
+            blocks.append(f'【{current_region}｜{sum(x["region"]==current_region for x in rows)}筆】')
         kind = r['property_type']
         label = {'house': '一戶建', 'house_new': '新築一戶建', 'condo': '大樓候選', 'condo_new': '新築大樓建案線索'}.get(kind, kind)
         source = {'suumo': 'SUUMO', 'tatara': 'たたら', 'smtrc': '三井住友トラスト'}.get(r['property_id'].split('_')[0], '')
@@ -49,7 +62,8 @@ def build_messages(report, rows):
         if kind in {'house_new', 'condo_new'}:
             area += '；建案面積與價格區間需確認是否屬同一戶'
         star = '⭐ 約40坪優先 ' if not is_house and r['building_area'] >= 132.23 else ''
-        blocks.append(f"{star}【{r['region']}｜{label}｜{source}】\n{r['title'][:180]}\n{price}｜{area}\n{r['layout']}｜{r['build_year']}\n{r['url']}")
+        blocks.append(f"{star}【{r['region']}｜{label}｜{source}】\n{r['title'][:180]}\n{price}｜{area}\n{r['layout']}｜{r['build_year']}\n{tax_budget(r['current_price'])}\n{r['url']}")
+    blocks.append('稅金為預算預留：一次性按售價0.5–3%、年稅按0.3–1.2%。實際稅基為固定資產評價額，並受住宅減免與都市計畫區影響；不含仲介、修繕及管理費。來源有錯誤或只涵蓋首頁時，清單不代表市場全部。')
     chunks, current = [], ''
     for block in blocks:
         if len(block) > 4500:
