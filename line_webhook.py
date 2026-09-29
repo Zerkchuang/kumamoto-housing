@@ -53,8 +53,8 @@ def refresh_homes(target):
                 rows, report=load_inventory(DB)
                 sources=report.get("sources",[])
                 failures=sum(x.get("status") != "完成" for x in sources)
-                message=(f"房源更新完成｜{report['checked_at']}\\n"
-                         f"已驗證 {len(rows)} 筆；來源異常／未完成 {failures}/{len(sources)}。\\n\\n"
+                message=(f"房源更新完成｜{report['checked_at']}\n"
+                         f"已驗證 {len(rows)} 筆；來源異常／未完成 {failures}/{len(sources)}。\n\n"
                          + homes(limit=8))
             except (ValueError, sqlite3.Error, KeyError) as exc:
                 message=f"爬蟲已執行，但結果未通過驗證：{exc}"
@@ -86,7 +86,8 @@ def homes(region=None, limit=8):
 
 def help_text():
     return """Maple 助理可直接使用：
-• 更新房源／更新資訊：立即重新查詢來源，完成後推送結果（可能需要幾分鐘）\n• 最新房源／房源：列出資料庫中符合條件的已驗證熊本物件
+• 更新房源／更新資訊：立即重新查詢來源，完成後推送結果（可能需要幾分鐘）
+• 最新房源／房源：列出資料庫中符合條件的已驗證熊本物件
 • 光之森：列出光之森本區、屋齡未滿15年的物件
 • 購屋比較：直接問「幫我比較目前房源」
 • 半導體：問 HBM、DRAM、NAND、設備、材料、AI 供應鏈
