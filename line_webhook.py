@@ -42,11 +42,21 @@ def push(target, message):
       json={"to":target,"messages":[{"type":"text","text":message[:4500]}]},timeout=20)
     r.raise_for_status()
 
+def tax_budget(price):
+    if not price:
+        return "稅金粗估：價格未定，待取得售價與課稅評價額"
+    # Budget envelope only: the official tax base is assessed value, not sale price.
+    # Purchase includes acquisition, registration and contract stamp taxes.
+    def man(rate):
+        return round(price * rate / 10000)
+    return (f"稅金預留：購入後一次性約{man(.005)}–{man(.03)}萬円；"
+            f"每年約{man(.003)}–{man(.012)}萬円")
+
 def inventory_pages(rows, report):
     """One section per region; split on property boundaries, never drop verified rows."""
     priority=("菊陽町","熊本市東區","熊本市北區","熊本市中央區","光之森","合志市")
     regions=sorted({r["region"] for r in rows}, key=lambda name:(name not in priority, priority.index(name) if name in priority else name))
-    pages=[f"房源更新完成｜{report['checked_at']}\n已驗證 {len(rows)} 筆，以下按區域分段列出全部物件。"]
+    pages=[f"房源更新完成｜{report['checked_at']}\n已驗證 {len(rows)} 筆，以下按區域分段列出全部物件。\n稅金為粗略預留：一次性按售價0.5–3%，年稅按0.3–1.2%；實際依固定資產稅評價額、地段與減免。"]
     for region in regions:
         group=sorted((r for r in rows if r["region"]==region),
                      key=lambda r:(r["current_price"]==0,r["current_price"]))
@@ -55,13 +65,13 @@ def inventory_pages(rows, report):
         for r in group:
             price=f"{r['current_price']/10000:,.0f}萬円" if r["current_price"] else "價格未定"
             block=(f"\n\n{r['title'][:100]}\n{price}｜建物／專有面積{r['building_area']}㎡｜"
-                   f"{r['build_year']}\n{r['url']}")
+                   f"{r['build_year']}\n{tax_budget(r['current_price'])}\n{r['url']}")
             if len(part)+len(block)>4200:
                 pages.append(part)
                 part=heading+"（續）"
             part+=block
         pages.append(part)
-    pages.append(f"全部區域已送完，共 {len(rows)} 筆。刊登狀態仍須向仲介確認。")
+    pages.append(f"全部區域已送完，共 {len(rows)} 筆。稅金含不動產取得、登記、印花及年度固定資產／適用時的都市計畫稅；不含仲介費、修繕及大樓管理費。實際稅額請以評價證明與前一年稅單核對。刊登狀態仍須向仲介確認。")
     return pages
 
 def refresh_homes(target):
