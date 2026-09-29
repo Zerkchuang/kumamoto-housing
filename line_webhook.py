@@ -43,10 +43,13 @@ def push(target, message):
     r.raise_for_status()
 
 def refresh_homes(target):
+    app.logger.info('Housing refresh started')
     try:
         run=subprocess.run([sys.executable,"crawler.py"],cwd=os.path.dirname(os.path.abspath(__file__)),
-                           capture_output=True,text=True,timeout=900)
+                           capture_output=True,text=True,timeout=2400)
+        app.logger.info('Housing refresh exited with code %s', run.returncode)
         if run.returncode:
+            app.logger.error('Housing crawler failed: %s', run.stderr[-2000:])
             message="房源更新失敗；本次沒有產生新資料。請檢查爬蟲執行紀錄。"
         else:
             try:
@@ -58,11 +61,17 @@ def refresh_homes(target):
                          + homes(limit=8))
             except (ValueError, sqlite3.Error, KeyError) as exc:
                 message=f"爬蟲已執行，但結果未通過驗證：{exc}"
-        try: push(target,message)
+        try:
+            push(target,message)
+            app.logger.info("Housing refresh result pushed")
         except requests.RequestException: app.logger.exception("LINE refresh push failed")
     except subprocess.TimeoutExpired:
         try: push(target,"房源更新逾時；本次無法確認最新結果，請稍後重試。")
         except requests.RequestException: app.logger.exception("LINE timeout push failed")
+    except Exception:
+        app.logger.exception("Housing refresh failed unexpectedly")
+        try: push(target,"房源更新遇到系統錯誤；本次無法確認最新結果。")
+        except requests.RequestException: app.logger.exception("LINE error push failed")
     finally:
         _refresh_lock.release()
 
