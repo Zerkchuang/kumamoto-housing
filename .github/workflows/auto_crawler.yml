@@ -16,7 +16,7 @@ permissions:
 
 concurrency:
   group: kumamoto-inventory-main
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   scrape-and-update:
