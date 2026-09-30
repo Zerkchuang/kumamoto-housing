@@ -17,10 +17,10 @@ class SourcesTest(unittest.TestCase):
         self.assertEqual(crawler.parse_region('熊本県菊池郡菊陽町大字津久礼', '光の森駅徒歩10分', ''),'菊陽町')
 
     def test_hikari_budget_area_exemption_and_oku_price(self):
-        s=self.sample(所在地='熊本県菊池郡菊陽町光の森1',価格='2億6037万円',専有面積='55m2')
+        s=self.sample(所在地='熊本県菊池郡菊陽町光の森1',価格='2億6037万円',専有面積='135m2')
         item,_=parse_detail(s,'tatara_1','https://www.tatara-fudousan.com/property_detail/1',crawler)
         self.assertEqual(item['current_price'],260370000)
-        self.assertEqual(item['building_area'],55)
+        self.assertEqual(item['building_area'],135)
         self.assertEqual(item['region'],'光之森')
         old=self.sample(所在地='熊本県菊池郡菊陽町光の森1',築年月='2000年1月')
         self.assertIsNone(parse_detail(old,'tatara_1','https://www.tatara-fudousan.com/property_detail/1',crawler)[0])
@@ -51,9 +51,21 @@ class SourcesTest(unittest.TestCase):
         self.assertEqual(item['building_area'],135.5)
         self.assertEqual(item['region'],'熊本市東區')
     def test_budget_and_age(self):
-        for kw in [{'価格':'8,000万円'},{'築年月':'1990年01月'},{'価格':'価格未定'}]:
+        for kw in [{'築年月':'1990年01月'},{'価格':'価格未定'}]:
             item,_=parse_detail(self.sample(**kw),'tatara_1','https://www.tatara-fudousan.com/property_detail/1',crawler)
             self.assertIsNone(item)
+    def test_condo_has_no_price_ceiling_but_house_keeps_it(self):
+        item, _=parse_detail(self.sample(価格='2億円'), 'tatara_1','https://www.tatara-fudousan.com/property_detail/1',crawler)
+        self.assertEqual(item['current_price'],200000000)
+        house=self.sample(価格='2億円',土地面積='250m2')
+        house.find('th',string='専有面積').string='延床面積'
+        self.assertIsNone(parse_detail(house,'tatara_1','https://www.tatara-fudousan.com/property_detail/1',crawler)[0])
+
+    def test_condo_35_tsubo_floor_applies_in_all_regions(self):
+        for address in ['熊本県熊本市東区長嶺南','熊本県菊池郡菊陽町光の森1']:
+            self.assertIsNone(parse_detail(self.sample(所在地=address,専有面積='115.70m2'), 'tatara_1','https://www.tatara-fudousan.com/property_detail/1',crawler)[0])
+            self.assertIsNotNone(parse_detail(self.sample(所在地=address,専有面積='115.71m2'), 'tatara_1','https://www.tatara-fudousan.com/property_detail/1',crawler)[0])
+
     def test_house_land_still_required(self):
         s=self.sample();s.find('th',string='専有面積').string='延床面積'
         item,_=parse_detail(s,'tatara_1','https://www.tatara-fudousan.com/property_detail/1',crawler)

@@ -4,7 +4,7 @@ import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
 
-from crawler import PRICE_BASIS, is_hikari, within_age_limit
+from crawler import PRICE_BASIS, MIN_CONDO_AREA, is_hikari, within_age_limit
 from extra_sources import valid_detail_url
 
 
@@ -24,7 +24,8 @@ def load_inventory(path='kumamoto_properties.db', now=None):
         rows = [dict(r) for r in db.execute("SELECT * FROM properties WHERE status='active'")]
     candidates = [r for r in rows if r['property_id'] in ids and r.get('price_basis') == PRICE_BASIS
             and valid_detail_url(r['property_id'], r['url'])
-            and within_age_limit(r['build_year'], strict=is_hikari(r['address']))]
+            and within_age_limit(r['build_year'], strict=is_hikari(r['address']))
+            and (r['property_type'] in {'house','house_new'} or r['building_area'] >= MIN_CONDO_AREA)]
     return candidates, report
 
 

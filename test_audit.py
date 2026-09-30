@@ -39,7 +39,7 @@ class AuditTest(unittest.TestCase):
     def item(self, **changes):
         row=dict(property_id='suumo_123',title='住宅',url='https://suumo.jp/ms/chuko/kumamoto/sc_kikuchigun/nc_123/',
             region='光之森',address='熊本県菊池郡菊陽町光の森1',current_price=80000000,land_area=0,
-            building_area=90,layout='3LDK',build_year='2020年9月',property_type='condo',price_basis=crawler.PRICE_BASIS)
+            building_area=135,layout='3LDK',build_year='2020年9月',property_type='condo',price_basis=crawler.PRICE_BASIS)
         row.update(changes)
         return row
 

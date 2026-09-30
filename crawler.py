@@ -22,7 +22,7 @@ MAX_PRICE = 72992700
 MAX_AGE_YEARS = 15
 MIN_HOUSE_LAND = 200
 MIN_HOUSE_BUILDING = 100
-MIN_CONDO_AREA = 70
+MIN_CONDO_AREA = 35 / 0.3025  # Exclusive floor area >= 35 tsubo.
 PREFERRED_CONDO_AREA = 132.23  # roughly 40 tsubo; preference, not a hard cutoff
 PRICE_BASIS = 'sale_price_field_v2'
 
@@ -252,8 +252,8 @@ def detail(pid, href, label, property_type):
         return None
 
     if hikari:
-        # Collect all known-age residential offers here; budget and area are preferences.
-        matches = True
+        # Hikari houses retain the area exemption; condos must meet the 35-tsubo floor.
+        matches = is_house or area >= MIN_CONDO_AREA
     elif is_house:
         matches = (
             region in HOUSE_REGIONS
@@ -262,7 +262,7 @@ def detail(pid, href, label, property_type):
             and area >= MIN_HOUSE_BUILDING
         )
     else:
-        known_price_matches = 0 < price <= MAX_PRICE
+        known_price_matches = price > 0  # Condos have no purchase-price ceiling.
         price_pending_new_build = property_type == "condo_new" and price == 0
         matches = (
             region in CONDO_REGIONS

@@ -85,9 +85,9 @@ def parse_detail(soup, pid, url, config):
     price = config.parse_price(price_text)
     area = number(field('専有面積') if condo else field('延床面積', '建物延面積', '建物面積'))
     land = 0 if condo else number(field('土地面積'))
-    if not hikari and not (0 < price <= config.MAX_PRICE):
+    if not hikari and (price <= 0 or (not condo and price > config.MAX_PRICE)):
         return None, 'filtered'
-    if not hikari and area < (config.MIN_CONDO_AREA if condo else config.MIN_HOUSE_BUILDING):
+    if (condo and area < config.MIN_CONDO_AREA) or (not condo and not hikari and area < config.MIN_HOUSE_BUILDING):
         return None, 'filtered'
     if not hikari and not condo and land < config.MIN_HOUSE_LAND:
         return None, 'filtered'

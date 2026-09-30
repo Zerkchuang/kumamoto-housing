@@ -14,7 +14,7 @@ _refresh_lock=threading.Lock()
 
 PROFILE="""你是 Maple 的 LINE 專屬助理。用繁體中文、直接、精簡、有結論。
 常用情境：
-1. 熊本/JASM購屋：光之森本區屋齡未滿15年，不限價格及面積；其他區域沿用資料庫已設定條件。不可捏造房源或使用其他人的私人設定。
+1. 熊本/JASM購屋：光之森本區屋齡未滿15年，一戶建不限價格及面積；所有大樓獨立為豪宅候選，專有面積35坪以上、不限價格，屋齡沿用原設定；其他一戶建沿用原條件。不可捏造房源或使用其他人的私人設定。
 2. 半導體/AI：重點為先進封裝、HBM/DRAM/NAND、設備、化材、AI伺服器；區分已知事實與推論。
 3. 投資：短線看3個月內籌碼，長線看3個月以上基本面；提醒資料日期與風險，不捏造即時行情。
 4. 日本工作/日文：會議、安全、品質、設備與職場日語；日文可附羅馬拼音。
@@ -57,10 +57,13 @@ def inventory_pages(rows, report):
     priority=("菊陽町","熊本市東區","熊本市北區","熊本市中央區","光之森","合志市")
     regions=sorted({r["region"] for r in rows}, key=lambda name:(name not in priority, priority.index(name) if name in priority else name))
     pages=[f"房源更新完成｜{report['checked_at']}\n本次已核對 {len(rows)} 筆，以下按區域分段列出這次驗證通過的全部物件；來源有未覆蓋頁面或錯誤時，不代表市場全部。\n稅金為粗略預留：一次性按售價0.5–3%，年稅按0.3–1.2%；實際依固定資產稅評價額、地段與減免。"]
-    for region in regions:
-        group=sorted((r for r in rows if r["region"]==region),
+    groups=[('一戶建',region,[r for r in rows if r['region']==region and r['property_type'] in {'house','house_new'}]) for region in regions]
+    groups += [('大樓豪宅候選｜35坪以上・不限價格',region,[r for r in rows if r['region']==region and r['property_type'] not in {'house','house_new'}]) for region in regions]
+    for category, region, category_rows in groups:
+        if not category_rows: continue
+        group=sorted(category_rows,
                      key=lambda r:(r["current_price"]==0,r["current_price"]))
-        heading=f"【{region}｜{len(group)} 筆】"
+        heading=f"【{category}｜{region}｜{len(group)} 筆】"
         part=heading
         for r in group:
             price=f"{r['current_price']/10000:,.0f}萬円" if r["current_price"] else "價格未定"
