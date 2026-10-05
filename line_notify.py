@@ -9,6 +9,7 @@ from urllib.parse import urlparse
 import requests
 from extra_sources import valid_detail_url
 from inventory import load_inventory
+from amenities import amenity_text
 
 DB_NAME = 'kumamoto_properties.db'
 
@@ -68,7 +69,7 @@ def build_messages(report, rows):
         if kind in {'house_new', 'condo_new'}:
             area += '；建案面積與價格區間需確認是否屬同一戶'
         star = '⭐ 約40坪優先 ' if not is_house and r['building_area'] >= 132.23 else ''
-        blocks.append(f"{star}【{r['region']}｜{label}｜{source}】\n{r['title'][:180]}\n{price}｜{area}\n{r['layout']}｜{r['build_year']}\n{tax_budget(r['current_price'])}\n{r['url']}")
+        blocks.append(f"{star}【{r['region']}｜{label}｜{source}】\n{r['title'][:180]}\n{price}｜{area}\n{r['layout']}｜{r['build_year']}\n{tax_budget(r['current_price'])}\n{r.get('address', '地址待確認')}\n{r['url']}\n{amenity_text(r)}")
     blocks.append('稅金為預算預留：一次性按售價0.5–3%、年稅按0.3–1.2%。實際稅基為固定資產評價額，並受住宅減免與都市計畫區影響；不含仲介、修繕及管理費。來源有錯誤或只涵蓋首頁時，清單不代表市場全部。')
     chunks, current = [], ''
     for block in blocks:
@@ -142,3 +143,4 @@ if __name__ == '__main__':
         print('\n\n--- MESSAGE ---\n\n'.join(messages))
     else:
         push_line(messages)
+

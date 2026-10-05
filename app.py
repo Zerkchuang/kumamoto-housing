@@ -3,6 +3,7 @@ import sqlite3
 import pandas as pd
 import streamlit as st
 from inventory import load_inventory, verified_history
+from amenities import amenity_rows, amenity_summary
 
 st.set_page_config(page_title="熊本住宅與高級大樓情報看板", layout="wide", page_icon="🏡")
 
@@ -52,6 +53,8 @@ def load_data():
         return " ".join(tags) if tags else "住宅候選（待確認）"
 
     df["tags"] = df.apply(get_tags, axis=1)
+    for category in ["小學學區", "中學學區", "附近學校", "車站", "大型商場"]:
+        df[category] = df.apply(lambda row: amenity_summary(row, category), axis=1)
     return df, history_df, report, ''
 
 df, history_df, report, load_issue = load_data()
@@ -120,7 +123,7 @@ tab1, tab2 = st.tabs(["📋 物件一覽表", "📉 已驗證價格紀錄"])
 with tab1:
     st.subheader(f"🏠 【{selected_region}】有效在架住宅一覽")
     show_cols = [
-        "type_label", "region", "title", "price_display", "land_spec", "bldg_spec", "layout", "build_year", "address", "tags", "url"
+        "type_label", "region", "title", "price_display", "land_spec", "bldg_spec", "layout", "build_year", "address", "tags", "url", "小學學區", "中學學區", "附近學校", "車站", "大型商場"
     ]
     st.dataframe(
         filtered[show_cols].rename(columns={
@@ -140,6 +143,22 @@ with tab1:
         use_container_width=True,
         hide_index=True
     )
+
+    st.caption("距離為刊登資料，保留公尺／步行時間；未實測，未聲稱為最近站。附近學校與指定學區分開；分區街道須以完整門牌確認。")
+    for _, row in filtered.iterrows():
+        with st.expander(row["title"] + "｜周邊資訊"):
+            st.write(f"{row['price_display']}｜{row['bldg_spec']}｜{row['build_year']}\n\n{row['address']}")
+            st.dataframe(pd.DataFrame(amenity_rows(row)), hide_index=True, use_container_width=True)
+            try:
+                details = json.loads(row.get("amenities_json") or "{}")
+            except (ValueError, TypeError):
+                details = {}
+            if isinstance(details, dict):
+                st.caption("周邊核對時間：" + details.get("checked_at", "待更新"))
+                for district in details.get("districts", []):
+                    if district.get("source"):
+                        st.markdown(f"[{district['kind']}官方資料]({district['source']})")
+            st.link_button("查看原始房源", row["url"])
 
 with tab2:
     st.subheader("📉 已驗證價格紀錄（含首次刊登、重新建立基準與漲跌）")
@@ -161,3 +180,4 @@ with tab2:
         )
     else:
         st.info("目前尚未有已驗證價格紀錄。")
+

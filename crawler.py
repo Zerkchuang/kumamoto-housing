@@ -10,6 +10,7 @@ from urllib.parse import urljoin, urlparse, unquote
 
 import requests
 from bs4 import BeautifulSoup
+from amenities import extract_amenities
 
 
 HEADERS = {
@@ -111,6 +112,8 @@ def init_db():
         cur.execute("ALTER TABLE properties ADD COLUMN property_type TEXT DEFAULT 'house'")
     if "price_basis" not in columns:
         cur.execute("ALTER TABLE properties ADD COLUMN price_basis TEXT DEFAULT 'legacy_unverified'")
+    if "amenities_json" not in columns:
+        cur.execute("ALTER TABLE properties ADD COLUMN amenities_json TEXT DEFAULT '{}'")
     cur.execute(
         """CREATE TABLE IF NOT EXISTS price_history(
         id INTEGER PRIMARY KEY AUTOINCREMENT,property_id TEXT,price INTEGER,
@@ -285,6 +288,7 @@ def detail(pid, href, label, property_type):
         "build_year": completed,
         "property_type": property_type,
         "price_basis": PRICE_BASIS,
+        "amenities_json": json.dumps(extract_amenities(soup, address, url), ensure_ascii=False),
     }
 
 
@@ -424,12 +428,12 @@ def save(items, report=None):
                 """INSERT INTO properties(
                 property_id,title,url,region,address,current_price,land_area,
                 building_area,layout,build_year,first_seen_date,last_seen_date,
-                status,property_type,price_basis) VALUES(?,?,?,?,?,?,?,?,?,?,?,?, 'active',?,?)""",
+                status,property_type,price_basis,amenities_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?, 'active',?,?,?)""",
                 (
                     item["property_id"], item["title"], item["url"], item["region"],
                     item["address"], item["current_price"], item["land_area"],
                     item["building_area"], item["layout"], item["build_year"],
-                    today, today, item["property_type"], item['price_basis'],
+                    today, today, item["property_type"], item['price_basis'], item.get("amenities_json", "{}"),
                 ),
             )
             cur.execute(
@@ -447,12 +451,12 @@ def save(items, report=None):
             cur.execute(
                 """UPDATE properties SET title=?,url=?,region=?,address=?,current_price=?,
                 land_area=?,building_area=?,layout=?,build_year=?,last_seen_date=?,
-                property_type=?,price_basis=?,status='active' WHERE property_id=?""",
+                property_type=?,price_basis=?,amenities_json=?,status='active' WHERE property_id=?""",
                 (
                     item["title"], item["url"], item["region"], item["address"],
                     item["current_price"], item["land_area"], item["building_area"],
                     item["layout"], item["build_year"], today, item["property_type"],
-                    item['price_basis'], item["property_id"],
+                    item['price_basis'], item.get('amenities_json', '{}'), item["property_id"],
                 ),
             )
     for (pid,) in cur.execute(
@@ -501,3 +505,4 @@ if __name__ == "__main__":
                    sources=statuses, property_ids=sorted(seen_ids), count=len(inventory), price_parser_version=PRICE_BASIS)
     save(inventory, payload)
     print("RUN_REPORT " + json.dumps(payload, ensure_ascii=False), flush=True)
+

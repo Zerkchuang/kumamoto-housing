@@ -1,6 +1,7 @@
 import os, json, hmac, hashlib, base64, sqlite3, requests, threading, subprocess, sys
 from flask import Flask, request, abort
 from inventory import load_inventory
+from amenities import amenity_text
 from webhook_guard import claim_event, allow_gpt
 
 app=Flask(__name__)
@@ -68,7 +69,7 @@ def inventory_pages(rows, report):
         for r in group:
             price=f"{r['current_price']/10000:,.0f}萬円" if r["current_price"] else "價格未定"
             block=(f"\n\n{r['title'][:100]}\n{price}｜建物／專有面積{r['building_area']}㎡｜"
-                   f"{r['build_year']}\n{tax_budget(r['current_price'])}\n{r['url']}")
+                   f"{r['build_year']}\n{tax_budget(r['current_price'])}\n{r.get('address', '地址待確認')}\n{r['url']}\n{amenity_text(r)}")
             if len(part)+len(block)>4200:
                 pages.append(part)
                 part=heading+"（續）"
@@ -133,7 +134,7 @@ def homes(region=None, limit=8):
     blocks=[header]
     for r in rows[:limit]:
         price=f"{r['current_price']/10000:,.0f}萬円" if r['current_price'] else '價格未定'
-        blocks.append(f"{r['title'][:100]}\n{price}｜建物／專有面積{r['building_area']}㎡｜{r['build_year']}\n{r['url']}")
+        blocks.append(f"{r['title'][:100]}\n{price}｜建物／專有面積{r['building_area']}㎡｜{r['build_year']}\n{r.get('address', '地址待確認')}\n{r['url']}\n{amenity_text(r)}")
     return '\n\n'.join(blocks)
 
 def help_text():
@@ -243,3 +244,4 @@ def webhook():
 
 if __name__=="__main__":
     app.run(host="0.0.0.0",port=int(os.environ.get("PORT","8080")))
+
