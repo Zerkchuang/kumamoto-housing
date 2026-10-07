@@ -66,6 +66,12 @@ if report:
             "source":"來源", "scope":"搜尋範圍", "status":"狀態", "discovered":"詳細頁",
             "matched":"候選", "errors":"讀取錯誤", "unreadable":"無法解析／非公開"}), hide_index=True)
 
+    pending = [row for source in report.get("sources", []) for row in source.get("pending_listings", [])]
+    if pending:
+        with st.expander("熊本未來｜待核對，尚未確認符合條件", expanded=True):
+            st.dataframe(pd.DataFrame([{"物件": r["title"], "缺少資料": "、".join(r["missing_fields"]), "官方房源": r["url"]} for r in pending]), hide_index=True,
+                         column_config={"官方房源": st.column_config.LinkColumn("查看房源")})
+
 
 st.title("🏡 熊本 JASM 生活圈住宅與高級大樓情報看板")
 st.caption("光之森本區：屋齡未滿15年（含新築），不限預算、土地與建物面積，依公開來源分頁收集。其他區域：一戶建≤約7,299萬円、土地≥200㎡、建物≥100㎡；大樓專有面積約40坪優先；屋齡15年內。")
@@ -180,4 +186,5 @@ with tab2:
         )
     else:
         st.info("目前尚未有已驗證價格紀錄。")
+
 

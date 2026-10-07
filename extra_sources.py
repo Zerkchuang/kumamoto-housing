@@ -29,6 +29,9 @@ def valid_detail_url(pid, url):
     p = urlparse(url)
     if p.scheme != 'https':
         return False
+    if pid.startswith('mirai_'):
+        from mirai_source import identity
+        return identity(url) == pid
     if pid.startswith('suumo_'):
         return p.hostname == 'suumo.jp' and bool(re.fullmatch(r'/(?:ms/(?:chuko|shinchiku)|chukoikkodate|ikkodate)/kumamoto/[^/]+/nc_' + re.escape(pid[6:]) + r'/', p.path))
     if pid.startswith('tatara_'):
@@ -146,6 +149,11 @@ def collect(config):
         items.extend(found)
         statuses.append(status)
         print('SOURCE_STATUS', status, flush=True)
+    from mirai_source import collect_mirai
+    found, status = collect_mirai(config)
+    items.extend(found)
+    statuses.append(status)
+    print('SOURCE_STATUS', {k:v for k,v in status.items() if k != 'pending_listings'}, flush=True)
     for _, name, url in PROBES:
         status = dict(source=name, scope='連線測試；尚未接通物件解析', discovered=0, matched=0, errors=0, unreadable=0)
         try:
@@ -156,4 +164,5 @@ def collect(config):
         statuses.append(status)
         print('SOURCE_STATUS', status, flush=True)
     return items, statuses
+
 

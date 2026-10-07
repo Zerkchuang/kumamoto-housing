@@ -33,3 +33,6 @@
 
 本地驗證：`python -m unittest test_sources -v`。
 LINE乾跑：`LINE_DRY_RUN=1 python line_notify.py`。
+
+
+2026-10-07 接入熊本未來 https://kumamoto-mirai.tw/ ：遍歷熊本區域公開分頁及首頁，含自有與提攜企業住宅。純土地、整棟投資及已完售頁面不納入住宅候選。僅有圖片／請洽詢／缺價格面積或完工年月的房源存於本輪 report.pending_listings，獨立標示待核對並顯示官方連結，不混入符合條件筆數；文章日期不當作完工日期。原篩選及周邊資訊表格沿用現行程式。

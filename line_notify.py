@@ -10,6 +10,7 @@ import requests
 from extra_sources import valid_detail_url
 from inventory import load_inventory
 from amenities import amenity_text
+from mirai_source import pending_blocks
 
 DB_NAME = 'kumamoto_properties.db'
 
@@ -61,7 +62,7 @@ def build_messages(report, rows):
             blocks.append(f'【{current_region}｜{sum(x["region"]==current_region for x in rows)}筆】')
         kind = r['property_type']
         label = {'house': '一戶建', 'house_new': '新築一戶建', 'condo': '大樓候選', 'condo_new': '新築大樓建案線索'}.get(kind, kind)
-        source = {'suumo': 'SUUMO', 'tatara': 'たたら', 'smtrc': '三井住友トラスト'}.get(r['property_id'].split('_')[0], '')
+        source = {'suumo': 'SUUMO', 'tatara': 'たたら', 'smtrc': '三井住友トラスト', 'mirai': '熊本未來'}.get(r['property_id'].split('_')[0], '')
         price = f"{r['current_price']/10000:,.0f}萬円" if r['current_price'] else '價格未定；預算未確認'
         is_house = kind in {'house', 'house_new'}
         area = (f"土地 {r['land_area']:.2f}㎡｜建物 {r['building_area']:.2f}㎡" if is_house
@@ -70,6 +71,7 @@ def build_messages(report, rows):
             area += '；建案面積與價格區間需確認是否屬同一戶'
         star = '⭐ 約40坪優先 ' if not is_house and r['building_area'] >= 132.23 else ''
         blocks.append(f"{star}【{r['region']}｜{label}｜{source}】\n{r['title'][:180]}\n{price}｜{area}\n{r['layout']}｜{r['build_year']}\n{tax_budget(r['current_price'])}\n{r.get('address', '地址待確認')}\n{r['url']}\n{amenity_text(r)}")
+    blocks.extend(pending_blocks(report))
     blocks.append('稅金為預算預留：一次性按售價0.5–3%、年稅按0.3–1.2%。實際稅基為固定資產評價額，並受住宅減免與都市計畫區影響；不含仲介、修繕及管理費。來源有錯誤或只涵蓋首頁時，清單不代表市場全部。')
     chunks, current = [], ''
     for block in blocks:
@@ -143,4 +145,5 @@ if __name__ == '__main__':
         print('\n\n--- MESSAGE ---\n\n'.join(messages))
     else:
         push_line(messages)
+
 

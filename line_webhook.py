@@ -2,6 +2,7 @@ import os, json, hmac, hashlib, base64, sqlite3, requests, threading, subprocess
 from flask import Flask, request, abort
 from inventory import load_inventory
 from amenities import amenity_text
+from mirai_source import pending_blocks
 from webhook_guard import claim_event, allow_gpt
 
 app=Flask(__name__)
@@ -76,6 +77,13 @@ def inventory_pages(rows, report):
             part+=block
         pages.append(part)
     pages.append(f"全部區域已送完，共 {len(rows)} 筆。稅金含不動產取得、登記、印花及年度固定資產／適用時的都市計畫稅；不含仲介費、修繕及大樓管理費。實際稅額請以評價證明與前一年稅單核對。刊登狀態仍須向仲介確認。")
+    part = ''
+    for block in pending_blocks(report):
+        if len(part) + len(block) + 2 > 4200:
+            if part: pages.append(part)
+            part = ''
+        part += ('\n\n' if part else '') + block
+    if part: pages.append(part)
     return pages
 
 def refresh_homes(target):
@@ -244,4 +252,5 @@ def webhook():
 
 if __name__=="__main__":
     app.run(host="0.0.0.0",port=int(os.environ.get("PORT","8080")))
+
 
