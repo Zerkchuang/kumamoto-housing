@@ -3,6 +3,7 @@ from flask import Flask, request, abort
 from inventory import load_inventory
 from amenities import amenity_text
 from mirai_source import pending_blocks
+from sekisui_source import builder_pages, collect as collect_sekisui, load_report as load_builder_report, save_report as save_builder_report, HOUSE, HEIM
 from webhook_guard import claim_event, allow_gpt
 
 app=Flask(__name__)
@@ -84,6 +85,8 @@ def inventory_pages(rows, report):
             part = ''
         part += ('\n\n' if part else '') + block
     if part: pages.append(part)
+    if report.get("builder_checked_at"):
+        pages.extend(builder_pages(report))
     return pages
 
 def refresh_homes(target):
@@ -127,6 +130,21 @@ def refresh_homes(target):
     finally:
         _refresh_lock.release()
 
+def refresh_sekisui(target, brand=None):
+    try:
+        import crawler
+        builder = collect_sekisui(crawler)
+        save_builder_report(DB, builder)
+        for page in builder_pages(builder, brand):
+            push(target, page)
+        app.logger.info('Sekisui collection and push completed')
+    except Exception:
+        app.logger.exception('Sekisui refresh failed')
+        try: push(target, '積水專區更新失敗；這次無法確認最新結果。')
+        except requests.RequestException: app.logger.exception('Sekisui error push failed')
+    finally:
+        _refresh_lock.release()
+
 def homes(region=None, limit=8):
     try:
         rows,report=load_inventory(DB)
@@ -148,6 +166,8 @@ def homes(region=None, limit=8):
 def help_text():
     return """Maple 助理可直接使用：
 • 更新房源／更新資訊：重新查詢來源，按區域分段推送所有已驗證房源
+• 積水／積水ハウス／積水ハイム：獨立專區，指定區域、住宅15年內，不限價格／面積
+• 更新積水：只重新抓取積水專區並分段推播
 • 最新房源／房源：列出資料庫中符合條件的已驗證熊本物件
 • 光之森：列出光之森本區、屋齡未滿15年的物件
 • 購屋比較：直接問「幫我比較目前房源」
@@ -239,6 +259,33 @@ def webhook():
             except Exception:
               _refresh_lock.release()
               ans="房源更新無法啟動；請稍後重試。"
+        elif q in ("更新積水", "刷新積水", "重新搜尋積水"):
+          target=source.get("groupId") or source.get("roomId") or source.get("userId")
+          if not target:
+            ans="無法取得聊天室，更新尚未啟動。"
+          elif not _refresh_lock.acquire(blocking=False):
+            ans="房源更新正在執行；完成後會回報。"
+          else:
+            try:
+              threading.Thread(target=refresh_sekisui,args=(target,),daemon=True).start()
+              ans="已開始更新積水ハウス／積水ハイム；指定區域、屋齡15年內，不限價格及面積，完成後分段送出。"
+            except Exception:
+              _refresh_lock.release()
+              ans="積水更新未能啟動，請稍後重試。"
+        elif q in ("積水", "積水房源", "積水ハウス", "積水ハイム", "セキスイハイム", "積水House", "積水Heim"):
+          brand=HEIM if q in ("積水ハイム","セキスイハイム","積水Heim") else HOUSE if q in ("積水ハウス","積水House") else None
+          target=source.get("groupId") or source.get("roomId") or source.get("userId")
+          try:
+            report=load_builder_report(DB)
+            pages=builder_pages(report,brand)
+            if len(pages)==1:
+              ans=pages[0]
+            elif target:
+              for page in pages: push(target,page)
+              ans="積水專區已分段送完。"
+            else: ans="無法取得聊天室；請稍後重試。"
+          except (ValueError,sqlite3.Error,KeyError,requests.RequestException):
+            ans="積水專區暫時無法讀取，請輸入「更新積水」重新核對。"
         elif q in ("最新房源","房源","找房","物件"): ans=homes()
         elif q in ("光之森","光の森","光之森房源"): ans=homes(region='光之森',limit=20)
         elif q in ("功能","選單","help","幫助","使用說明"): ans=help_text()
@@ -252,5 +299,6 @@ def webhook():
 
 if __name__=="__main__":
     app.run(host="0.0.0.0",port=int(os.environ.get("PORT","8080")))
+
 
 

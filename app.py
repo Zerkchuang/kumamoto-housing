@@ -72,6 +72,20 @@ if report:
             st.dataframe(pd.DataFrame([{"物件": r["title"], "缺少資料": "、".join(r["missing_fields"]), "官方房源": r["url"]} for r in pending]), hide_index=True,
                          column_config={"官方房源": st.column_config.LinkColumn("查看房源")})
 
+    if report.get("builder_checked_at"):
+        st.subheader("積水獨立專區｜指定區域、住宅15年內、不限價格及面積")
+        st.caption("中央區、東區、合志市、菊陽町（含光之森）、大津町。以下不套用一般房源的預算與面積篩選；跨站可能重複。核對時間：" + report["builder_checked_at"])
+        for maker in ["積水ハウス", "積水ハイム"]:
+            with st.expander(maker, expanded=True):
+                for key, title in [("builder_listings", "住宅｜15年內"), ("builder_pending", "住宅線索｜屋齡待確認"), ("builder_land", "土地｜需另建住宅，價格不含房屋")]:
+                    entries = [r for r in report.get(key,[]) if r["brand"] == maker]
+                    st.markdown(title)
+                    if entries:
+                        st.dataframe(pd.DataFrame([{"名稱": r["title"], "區域": r["region"], "售價": r["price_display"], "土地面積": r.get("land_area_note") or (str(r["land_area"])+"㎡" if r.get("land_area") is not None else "待確認"), "建物㎡": r["building_area"], "完工年月": r["build_year"] or "待確認", "網址": r["url"]} for r in entries]), hide_index=True,
+                                     column_config={"網址": st.column_config.LinkColumn("查看房源")})
+                    else: st.caption("本輪未取得可列出的刊登，請參考來源狀態。")
+        st.dataframe(pd.DataFrame(report.get("builder_sources",[])), hide_index=True)
+
 
 st.title("🏡 熊本 JASM 生活圈住宅與高級大樓情報看板")
 st.caption("光之森本區：屋齡未滿15年（含新築），不限預算、土地與建物面積，依公開來源分頁收集。其他區域：一戶建≤約7,299萬円、土地≥200㎡、建物≥100㎡；大樓專有面積約40坪優先；屋齡15年內。")
@@ -186,5 +200,6 @@ with tab2:
         )
     else:
         st.info("目前尚未有已驗證價格紀錄。")
+
 
 

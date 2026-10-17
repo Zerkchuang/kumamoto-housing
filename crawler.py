@@ -503,6 +503,9 @@ if __name__ == "__main__":
     # this exact run's IDs, never yesterday's or an earlier same-day inventory.
     payload = dict(checked_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
                    sources=statuses, property_ids=sorted(seen_ids), count=len(inventory), price_parser_version=PRICE_BASIS)
+    from sekisui_source import collect as collect_sekisui
+    payload.update(collect_sekisui(sys.modules[__name__]))
     save(inventory, payload)
     print("RUN_REPORT " + json.dumps(payload, ensure_ascii=False), flush=True)
+
 
