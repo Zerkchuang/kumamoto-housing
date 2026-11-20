@@ -34,3 +34,13 @@ with st.expander('來源錯誤與涵蓋限制'):
     for s in report['sources']:
         st.write(s['source']+'：'+s['scope'])
         for e in s['errors']:st.write(e)
+
+if report.get('reviewed'):
+    st.subheader('人工查核補充｜非本輪自動取得')
+    for r in report['reviewed']:
+        with st.expander(r['title'],expanded=True):
+            st.caption('查核日期：'+r['reviewed_at']+'；未經仲介確認仍可售。')
+            st.write(f"{r['price_twd']/10000:,.0f}萬台幣｜建坪{r['building_ping']}坪｜地坪{r['land_ping']}坪｜屋齡約{r['age_years']}年")
+            for k,label in [('shopping','採買'),('transport','交通'),('medical','醫療'),('park','公園')]:st.write(label+'：'+r[k])
+            st.write(r['notes'])
+            st.link_button('查看物件',r['url'])

@@ -64,7 +64,7 @@ def qualify(row):
         return '排除', ['不在指定四區']
     if not row.get('type'):
         reasons.append('住宅類型待確認')
-    elif row.get('type') not in ('透天別墅', '透天厝', '別墅', '別墅/透天', '透天/店面'):
+    elif row.get('type') not in ('透天別墅', '透天厝', '別墅', '別墅/透天', '透天/店面', '透天'):
         return '排除', ['非已確認透天類型']
     for key, limit, minimum in [('price_twd', CONFIG['max_price_twd'], False),
                                  ('building_ping', CONFIG['min_building_ping'], True),
@@ -115,13 +115,17 @@ def parse_detail(source, html, url, expected_title=''):
             node.decompose()
         text = soup.get_text(' ', strip=True)
         # Stop before recommendations to avoid borrowing another home's fields.
-        text = re.split(r'相似物件|推薦物件|猜你喜歡', text)[0]
+        text = re.split(r'相似物件|推薦物件|猜你喜歡|類似物件實價登錄', text)[0]
         address = re.search(r'[台臺]南市(?:安南區|北區|安平區|中西區)[^\s<>]{0,45}', text)
         district = re.search(r'[台臺]南市(安南區|北區|安平區|中西區)', address[0] if address else '')
         price_node = soup.select_one('.text-c-orange-700.text-4xl') if source == '5168' else None
         price = number(price_node.get_text(strip=True)) if price_node else extract(r'(?:總價|售價|開價|含車位價)\s*([\d,]+(?:\.\d+)?)\s*萬', text)
-        kind = re.search(r'(?:型態|類型|類別)\s*(透天厝|透天別墅|別墅/透天|透天/店面|別墅)', text)
-        row = dict(title=title, address=address[0] if address else '', district=district[1] if district else '',
+        if source == '信義' and not price:
+            headline = re.split(r'地址[台臺]', text, maxsplit=1)
+            if len(headline) == 2:
+                price = extract(r'(?<![\d.])([\d,]{3,}(?:\.\d+)?)\s*萬(?!\s*/)', headline[1].split('基本資料')[0])
+        kind = re.search(r'(?:型態|類型|類別)\s*(透天厝|透天別墅|別墅/透天|透天/店面|別墅|透天)', text)
+        row = dict(title=title, address=re.split(r'建坪|地坪|單價', address[0])[0] if address else '', district=district[1] if district else '',
                    type=kind[1] if kind else '', price_twd=round(price*10000) if price else None,
                    building_ping=extract(r'(?:登記建坪|建物坪數|建物|建坪)\s*([\d,.]+)\s*坪', text),
                    land_ping=extract(r'(?:登記地坪|土地坪數|土地|地坪)\s*([\d,.]+)\s*坪', text),
@@ -170,7 +174,7 @@ def collect(max_pages=3, max_details=20):
     for name, (root, _) in SOURCES.items():
         state = dict(source=name, pages=0, discovered=0, parsed=0, matched=0, errors=[],
                      scope=f'最多{max_pages}頁、{max_details}詳細頁；不代表全市場', status='未完成')
-        links, visited, queue = {}, set(), [root]
+        links, visited, queue = ({'https://www.sinyi.com.tw/buy/house/8443RL': '綠綠光彩森林系電梯車墅'} if name == '信義' else {}), set(), [root]
         try:
             while queue and len(visited) < max_pages:
                 url = queue.pop(0)
@@ -215,6 +219,12 @@ def collect(max_pages=3, max_details=20):
         print(name, state['status'], 'parsed',state['parsed'],'matched',state['matched'],flush=True)
     # Do not merge street-only addresses: distinct houses can have the same areas and price.
     report['listings'].sort(key=lambda r: tuple(not r['amenities'][k] for k in CONFIG['priority'])+(r['price_twd'],))
+    reviewed_path = ROOT/'tainan_reviewed.json'
+    report['reviewed'] = []
+    if reviewed_path.exists():
+        for row in json.loads(reviewed_path.read_text()):
+            if datetime.fromisoformat(row['expires_at']) > datetime.now(ZoneInfo('Asia/Taipei')):
+                report['reviewed'].append(row)
     return report
 
 
@@ -230,6 +240,8 @@ def messages(report):
             if r['reasons']:lines.append('缺項：'+'、'.join(r['reasons']))
             lines.extend(['周邊為刊登線索，名稱／距離／行車時間未獨立驗證。',r['url']])
             blocks.append('\n'.join(lines))
+    for r in report.get('reviewed', []):
+        blocks.append(f"【人工查核補充｜非本輪自動取得】{r['title']}\n查核日期：{r['reviewed_at']}\n{r['address']}\n{r['price_twd']/10000:,.0f}萬｜建坪{r['building_ping']}坪｜地坪{r['land_ping']}坪｜屋齡約{r['age_years']}年\n電梯：刊登標示有電梯，現況待看屋\n採買：{r['shopping']}\n交通：{r['transport']}\n醫療：{r['medical']}\n公園：{r['park']}\n提醒：{r['notes']}\n{r['url']}")
     reasons = {}
     labels = {'price_twd':'總價', 'building_ping':'建坪', 'land_ping':'地坪', 'age_years':'屋齡'}
     for r in report.get('excluded', []):

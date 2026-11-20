@@ -53,6 +53,13 @@ class TainanTests(unittest.TestCase):
         self.assertIn('台南電梯透天',text);self.assertIn('讀取失敗',text);self.assertIn('未讀取不代表沒有房源',text)
         self.assertNotIn('萬円',text);self.assertTrue(all(len(x)<=4500 for x in messages(report)))
 
+    def test_sinyi_headline_price(self):
+        html='<h1>綠綠光彩森林系電梯車墅</h1><div>地址台南市安南區環館路建坪單價詳洽 3,450萬 (含車位價) 基本資料 建坪 108.84坪 地坪 55.21坪 屋齡 11.0年 類型 別墅/透天 有電梯</div>'
+        r=parse_detail('信義',html,'https://www.sinyi.com.tw/buy/house/8443RL')
+        self.assertEqual(r['status'],'刊登符合')
+        self.assertEqual(r['price_twd'],34500000)
+        self.assertEqual(r['address'],'台南市安南區環館路')
+
     def test_exclusion_summary(self):
         report=dict(checked_at='2026-11-20',listings=[],pending=[],sources=[],excluded=[dict(reasons=['building_ping不符條件']),dict(reasons=['age_years不符條件'])])
         text='\n'.join(messages(report))
