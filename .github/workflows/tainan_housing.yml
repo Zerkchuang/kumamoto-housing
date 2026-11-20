@@ -1,0 +1,66 @@
+name: Tainan Elevator Housing Weekly
+on:
+  schedule:
+    - cron: '0 0 * * 6'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'tainan.py'
+      - 'tainan_config.json'
+      - 'test_tainan.py'
+      - '.github/workflows/tainan_housing.yml'
+permissions:
+  contents: write
+concurrency:
+  group: tainan-housing
+  cancel-in-progress: false
+jobs:
+  search-and-push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Tests
+        run: python -m unittest discover -v
+      - name: Collect Tainan inventory and preview
+        run: python tainan.py
+      - name: Upload reviewable output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tainan-housing-output
+          path: |
+            tainan_report.json
+            tainan_preview.txt
+          if-no-files-found: warn
+      - name: Persist current report
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add tainan_report.json tainan_preview.txt
+          if ! git diff --cached --quiet; then
+            git commit -m '更新台南電梯透天本輪報告'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+      - name: Send Tainan report to existing LINE target
+        env:
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          LINE_PUSH_TARGET_URL: https://kumamoto-home-track.onrender.com/push-target
+        run: |
+          python - <<'PY'
+          import json
+          from tainan import messages
+          from line_notify import push_line
+          with open('tainan_report.json') as f:
+              report = json.load(f)
+          push_line(messages(report))
+          PY

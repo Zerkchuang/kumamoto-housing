@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - '*.py'
+      - '!tainan.py'
+      - '!test_tainan.py'
       - 'requirements.txt'
       - '.github/workflows/auto_crawler.yml'
   schedule:
