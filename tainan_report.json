@@ -33,7 +33,7 @@
     ],
     "max_age_years": 20
   },
-  "checked_at": "2026-11-20T18:50:40+08:00",
+  "checked_at": "2026-11-20T19:01:31+08:00",
   "sources": [
     {
       "source": "幸福家",
@@ -60,8 +60,8 @@
     {
       "source": "信義",
       "pages": 1,
-      "discovered": 18,
-      "parsed": 18,
+      "discovered": 19,
+      "parsed": 19,
       "matched": 0,
       "errors": [],
       "scope": "最多3頁、20詳細頁；不代表全市場",
@@ -83,15 +83,52 @@
       "source": "591",
       "pages": 1,
       "discovered": 5,
-      "parsed": 5,
+      "parsed": 4,
       "matched": 0,
-      "errors": [],
+      "errors": [
+        "來源跳轉到其他網域"
+      ],
       "scope": "最多3頁、20詳細頁；不代表全市場",
       "status": "部分範圍已讀取"
     }
   ],
   "listings": [],
-  "pending": [],
+  "pending": [
+    {
+      "title": "綠綠光彩森林系電梯車墅",
+      "address": "台南市安南區買屋",
+      "district": "安南區",
+      "type": "別墅/透天",
+      "price_twd": null,
+      "building_ping": 108.84,
+      "land_ping": 55.21,
+      "main_ping": 92.89,
+      "age_years": 11.1,
+      "elevator": "刊登稱有電梯，設備現況待看屋",
+      "amenities": {
+        "採買": [],
+        "交通": [
+          "也可快速連結國道1永康交流道",
+          "請依照捷運官方實際核定站名為主 交通 寵物 公車 ( 1 ) 公共自行車 ( 1 ) 0 環館三路"
+        ],
+        "醫療": [
+          "可就近中洲寮的診所",
+          "大型醫療院所則可至市立安南醫院"
+        ],
+        "公園": [
+          " 警衛管理 具垃圾處理 健身房 游泳池 有花園 近公園 2D/3D看屋 有電梯 有 103 人也在關注這",
+          "分區證明影本; 注意事項 -- 物件特色 機能 近公園 特色 2D/3D看屋 屋況 房間皆有窗 前後陽台"
+        ]
+      },
+      "source": "信義",
+      "url": "https://www.sinyi.com.tw/buy/house/8443RL",
+      "checked_at": "2026-11-20T19:02:02+08:00",
+      "status": "待核對",
+      "reasons": [
+        "price_twd待確認"
+      ]
+    }
+  ],
   "excluded": [
     {
       "title": "佳里金祥耀全新電梯雙車墅A",
@@ -112,7 +149,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/99317",
-      "checked_at": "2026-11-20T18:50:46+08:00",
+      "checked_at": "2026-11-20T19:01:36+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -137,7 +174,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/94683",
-      "checked_at": "2026-11-20T18:50:47+08:00",
+      "checked_at": "2026-11-20T19:01:37+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -164,7 +201,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/91965",
-      "checked_at": "2026-11-20T18:50:49+08:00",
+      "checked_at": "2026-11-20T19:01:38+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -189,7 +226,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/89471",
-      "checked_at": "2026-11-20T18:50:50+08:00",
+      "checked_at": "2026-11-20T19:01:39+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -214,7 +251,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/109690",
-      "checked_at": "2026-11-20T18:50:51+08:00",
+      "checked_at": "2026-11-20T19:01:40+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -241,7 +278,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/109666",
-      "checked_at": "2026-11-20T18:50:52+08:00",
+      "checked_at": "2026-11-20T19:01:41+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -268,7 +305,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/109608",
-      "checked_at": "2026-11-20T18:50:53+08:00",
+      "checked_at": "2026-11-20T19:01:42+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -297,7 +334,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/109351",
-      "checked_at": "2026-11-20T18:50:54+08:00",
+      "checked_at": "2026-11-20T19:01:43+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -326,7 +363,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/109346",
-      "checked_at": "2026-11-20T18:50:55+08:00",
+      "checked_at": "2026-11-20T19:01:44+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -355,7 +392,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/109337",
-      "checked_at": "2026-11-20T18:50:56+08:00",
+      "checked_at": "2026-11-20T19:01:46+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -380,7 +417,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/109195",
-      "checked_at": "2026-11-20T18:50:57+08:00",
+      "checked_at": "2026-11-20T19:01:47+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -405,7 +442,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/109179",
-      "checked_at": "2026-11-20T18:50:59+08:00",
+      "checked_at": "2026-11-20T19:01:48+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -430,7 +467,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/109174",
-      "checked_at": "2026-11-20T18:51:00+08:00",
+      "checked_at": "2026-11-20T19:01:49+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -457,7 +494,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/109150",
-      "checked_at": "2026-11-20T18:51:01+08:00",
+      "checked_at": "2026-11-20T19:01:50+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -482,7 +519,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/108906",
-      "checked_at": "2026-11-20T18:51:02+08:00",
+      "checked_at": "2026-11-20T19:01:51+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -507,7 +544,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/108895",
-      "checked_at": "2026-11-20T18:51:04+08:00",
+      "checked_at": "2026-11-20T19:01:52+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -532,7 +569,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/108880",
-      "checked_at": "2026-11-20T18:51:07+08:00",
+      "checked_at": "2026-11-20T19:01:53+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -559,7 +596,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/108736",
-      "checked_at": "2026-11-20T18:51:08+08:00",
+      "checked_at": "2026-11-20T19:01:54+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -584,7 +621,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/108681",
-      "checked_at": "2026-11-20T18:51:09+08:00",
+      "checked_at": "2026-11-20T19:01:55+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -609,7 +646,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/108596",
-      "checked_at": "2026-11-20T18:51:10+08:00",
+      "checked_at": "2026-11-20T19:01:56+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -620,7 +657,7 @@
       "address": "",
       "district": "",
       "type": "",
-      "price_twd": 187200,
+      "price_twd": null,
       "building_ping": 20.86,
       "land_ping": 4.41,
       "main_ping": 14.37,
@@ -646,7 +683,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/0694PX",
-      "checked_at": "2026-11-20T18:51:17+08:00",
+      "checked_at": "2026-11-20T19:02:04+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -657,7 +694,7 @@
       "address": "",
       "district": "",
       "type": "",
-      "price_twd": 273200,
+      "price_twd": null,
       "building_ping": 91.92,
       "land_ping": 11.42,
       "main_ping": 55.64,
@@ -683,7 +720,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/8464LB",
-      "checked_at": "2026-11-20T18:51:18+08:00",
+      "checked_at": "2026-11-20T19:02:05+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -720,7 +757,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/3102TJ",
-      "checked_at": "2026-11-20T18:51:20+08:00",
+      "checked_at": "2026-11-20T19:02:07+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -731,7 +768,7 @@
       "address": "",
       "district": "",
       "type": "",
-      "price_twd": 195300,
+      "price_twd": null,
       "building_ping": 24.1,
       "land_ping": 9.37,
       "main_ping": 23.09,
@@ -757,7 +794,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/0161RD",
-      "checked_at": "2026-11-20T18:51:21+08:00",
+      "checked_at": "2026-11-20T19:02:13+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -768,7 +805,7 @@
       "address": "台南市安南區海佃路一段１７２號",
       "district": "安南區",
       "type": "",
-      "price_twd": 270900,
+      "price_twd": null,
       "building_ping": 58.01,
       "land_ping": 8.76,
       "main_ping": 29.78,
@@ -794,7 +831,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/1684RB",
-      "checked_at": "2026-11-20T18:51:23+08:00",
+      "checked_at": "2026-11-20T19:02:14+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -831,7 +868,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/3944BX",
-      "checked_at": "2026-11-20T18:51:29+08:00",
+      "checked_at": "2026-11-20T19:02:16+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -842,7 +879,7 @@
       "address": "",
       "district": "",
       "type": "",
-      "price_twd": 287100,
+      "price_twd": null,
       "building_ping": 40.48,
       "land_ping": 8.7,
       "main_ping": 20.27,
@@ -863,7 +900,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/8495CH",
-      "checked_at": "2026-11-20T18:51:31+08:00",
+      "checked_at": "2026-11-20T19:02:17+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -874,7 +911,7 @@
       "address": "台南市北區開元路４７３號",
       "district": "北區",
       "type": "",
-      "price_twd": 231700,
+      "price_twd": null,
       "building_ping": 48.57,
       "land_ping": 8.9,
       "main_ping": 26.52,
@@ -900,7 +937,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/6926UF",
-      "checked_at": "2026-11-20T18:51:32+08:00",
+      "checked_at": "2026-11-20T19:02:19+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -911,7 +948,7 @@
       "address": "",
       "district": "",
       "type": "",
-      "price_twd": 45200,
+      "price_twd": null,
       "building_ping": 53.53,
       "land_ping": 6.1,
       "main_ping": 36.88,
@@ -937,7 +974,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/1326HB",
-      "checked_at": "2026-11-20T18:51:34+08:00",
+      "checked_at": "2026-11-20T19:02:20+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -948,7 +985,7 @@
       "address": "台南市中西區民生路二段３０５號",
       "district": "中西區",
       "type": "",
-      "price_twd": 167100,
+      "price_twd": null,
       "building_ping": 39.38,
       "land_ping": 7.64,
       "main_ping": 24.8,
@@ -974,7 +1011,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/8340DQ",
-      "checked_at": "2026-11-20T18:51:36+08:00",
+      "checked_at": "2026-11-20T19:02:26+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -985,7 +1022,7 @@
       "address": "台南市安平區永華路二段８４１號",
       "district": "安平區",
       "type": "",
-      "price_twd": 209800,
+      "price_twd": null,
       "building_ping": 47.7,
       "land_ping": 2.71,
       "main_ping": 27.84,
@@ -1011,7 +1048,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/9722YU",
-      "checked_at": "2026-11-20T18:51:38+08:00",
+      "checked_at": "2026-11-20T19:02:28+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -1022,7 +1059,7 @@
       "address": "台南市中西區買屋",
       "district": "中西區",
       "type": "",
-      "price_twd": 295900,
+      "price_twd": null,
       "building_ping": 30.86,
       "land_ping": 9.33,
       "main_ping": 15.68,
@@ -1048,7 +1085,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/6517RQ",
-      "checked_at": "2026-11-20T18:51:39+08:00",
+      "checked_at": "2026-11-20T19:02:29+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -1059,7 +1096,7 @@
       "address": "台南市北區海安路三段８０２號",
       "district": "北區",
       "type": "",
-      "price_twd": 163900,
+      "price_twd": null,
       "building_ping": 57.58,
       "land_ping": 6.15,
       "main_ping": 32.97,
@@ -1085,7 +1122,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/0265GJ",
-      "checked_at": "2026-11-20T18:51:41+08:00",
+      "checked_at": "2026-11-20T19:02:30+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -1096,7 +1133,7 @@
       "address": "台南市北區公園南路３４０號",
       "district": "北區",
       "type": "",
-      "price_twd": 223300,
+      "price_twd": null,
       "building_ping": 44.32,
       "land_ping": 9.02,
       "main_ping": 27.54,
@@ -1122,7 +1159,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/34622L",
-      "checked_at": "2026-11-20T18:51:46+08:00",
+      "checked_at": "2026-11-20T19:02:32+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -1133,7 +1170,7 @@
       "address": "",
       "district": "",
       "type": "",
-      "price_twd": 195300,
+      "price_twd": null,
       "building_ping": 27.08,
       "land_ping": 9.37,
       "main_ping": 23.09,
@@ -1159,7 +1196,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/3640AT",
-      "checked_at": "2026-11-20T18:51:51+08:00",
+      "checked_at": "2026-11-20T19:02:38+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -1170,7 +1207,7 @@
       "address": "",
       "district": "",
       "type": "",
-      "price_twd": 304700,
+      "price_twd": null,
       "building_ping": 49.84,
       "land_ping": 4.68,
       "main_ping": 26.26,
@@ -1196,7 +1233,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/5111JT",
-      "checked_at": "2026-11-20T18:51:53+08:00",
+      "checked_at": "2026-11-20T19:02:41+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -1207,7 +1244,7 @@
       "address": "台南市北區，位於開元路沿線，是一個融合歷史與現代機能的成熟生活區。交通方面，開元路為區域內主要幹道，",
       "district": "北區",
       "type": "",
-      "price_twd": 199900,
+      "price_twd": null,
       "building_ping": 45.98,
       "land_ping": 3.9,
       "main_ping": 25.4,
@@ -1233,7 +1270,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/1414NW",
-      "checked_at": "2026-11-20T18:52:00+08:00",
+      "checked_at": "2026-11-20T19:02:44+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -1244,7 +1281,7 @@
       "address": "台南市安南區海佃路一段１７２號",
       "district": "安南區",
       "type": "",
-      "price_twd": 259100,
+      "price_twd": null,
       "building_ping": 35.15,
       "land_ping": 4.68,
       "main_ping": 16.42,
@@ -1269,7 +1306,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/3812BK",
-      "checked_at": "2026-11-20T18:52:03+08:00",
+      "checked_at": "2026-11-20T19:02:45+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -1285,65 +1322,27 @@
       "land_ping": null,
       "main_ping": null,
       "age_years": null,
-      "elevator": "待確認",
+      "elevator": "刊登稱有電梯，設備現況待看屋",
       "amenities": {
         "採買": [
-          "路樹海首排｜坐擁綠意景觀視野 🔸 極稀有釋出｜難得市場珍稀物件 🔸 社區庭院游泳池｜休閒設施完善 🔸 一",
-          "｜打造最佳行銷方案 🍎 多元整合曝光管道｜提升物件市場能見 🍎 誠實分析市場行情｜以成交結果為本位 🍎 "
+          "包括臨江街夜市商圈、全聯、遠企購物中心、國泰醫院總院等"
         ],
         "交通": [
-          "便利商店 近公園綠地 近 學校 附近交通 文林國小公車站 明德捷運站 行業資質 所屬公司： 台灣房屋-朗",
+          "義線(信義安和站)距離約300公尺 • 鄰近三高架幹道：建國高架、基隆高架、市民高架三線串聯打造25分大",
           " 交通 學校 購物 餐飲 醫院 公園 銀行 捷運 公車 國小 國中 幼兒園 醫院 藥店 此區域暫無信息 "
         ],
         "醫療": [
-          "的新房 地圖&街景 地圖 交通 學校 購物 餐飲 醫院 公園 銀行 <iframe id=\"detail",
-          "</iframe> 周邊 交通 學校 購物 餐飲 醫院 公園 銀行 捷運 公車 國小 國中 幼兒園 醫院"
+          "包括臨江街夜市商圈、全聯、遠企購物中心、國泰醫院總院等",
+          "的新房 地圖&街景 地圖 交通 學校 購物 餐飲 醫院 公園 銀行 <iframe id=\"detail"
         ],
         "公園": [
-          "item.value} 生活機能 近 便利商店 近公園綠地 近 學校 附近交通 文林國小公車站 明德捷運",
-          " 地圖&街景 地圖 交通 學校 購物 餐飲 醫院 公園 銀行 <iframe id=\"detail-ma"
+          "{item.value} 生活機能 近便利商店 近公園綠 地 近 學校 近醫療機構 附近交通 信義安和捷",
+          "學區 優質學區 • 方正格局 立可入住 • 近敦安公園 鄰光信公園 優質環境 買賣房屋是緣份"
         ]
       },
       "source": "591",
-      "url": "https://sale.591.com.tw/home/house/detail/2/20938601.html",
-      "checked_at": "2026-11-20T18:52:08+08:00",
-      "status": "排除",
-      "reasons": [
-        "不在指定四區"
-      ]
-    },
-    {
-      "title": "${title}",
-      "address": "",
-      "district": "",
-      "type": "",
-      "price_twd": null,
-      "building_ping": null,
-      "land_ping": null,
-      "main_ping": null,
-      "age_years": null,
-      "elevator": "待確認",
-      "amenities": {
-        "採買": [
-          "登字第436541號 屋 況 特色 土地使用分區：市場用地 【物件資料】 形態：公寓 格局：3+1房2廳",
-          "超市、市場、公園一應俱全"
-        ],
-        "交通": [
-          "能 近便利商店 近公園綠地 附近交通 民生活動中心公車站 南京三民捷運站 行業資質 所屬公司： 有巢氏房",
-          "周邊擁有完善的日常採買、餐飲消費、公車交通及休閒綠地機能"
-        ],
-        "醫療": [
-          "的新房 地圖&街景 地圖 交通 學校 購物 餐飲 醫院 公園 銀行 <iframe id=\"detail",
-          "</iframe> 周邊 交通 學校 購物 餐飲 醫院 公園 銀行 捷運 公車 國小 國中 幼兒園 醫院"
-        ],
-        "公園": [
-          "{item.value} 生活機能 近便利商店 近公園綠地 附近交通 民生活動中心公車站 南京三民捷運站",
-          "超市、市場、公園一應俱全"
-        ]
-      },
-      "source": "591",
-      "url": "https://sale.591.com.tw/home/house/detail/2/21147263.html",
-      "checked_at": "2026-11-20T18:52:09+08:00",
+      "url": "https://sale.591.com.tw/home/house/detail/2/20957998.html",
+      "checked_at": "2026-11-20T19:02:49+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -1362,10 +1361,11 @@
       "elevator": "刊登稱有電梯，設備現況待看屋",
       "amenities": {
         "採買": [
-          ".value} 生 活 機能 近便利商 店 近傳統市場 近百貨公司 近公園綠地 近 學校 近醫療 機構 "
+          "m.value} 生 活機能 近便利商 店 近傳統市場 近百貨公司 近公園綠地 近學校 近醫療機構 近夜",
+          "而是在每一個不同的階段能夠提供買賣方客戶最符合當時市場狀態的資訊與專業建議"
         ],
         "交通": [
-          " 學校 近醫療 機構 近夜市 附近交通 松江路多線公車站 忠孝新生捷運站 松江南京捷運站 行業資質 經紀",
+          "學校 近醫療機構 近夜市 附近交通 祖師廟(康定)公車站 西門捷運站 行業資質 所屬公司： 中信房屋-南",
           " 交通 學校 購物 餐飲 醫院 公園 銀行 捷運 公車 國小 國中 幼兒園 醫院 藥店 此區域暫無信息 "
         ],
         "醫療": [
@@ -1373,13 +1373,13 @@
           "</iframe> 周邊 交通 學校 購物 餐飲 醫院 公園 銀行 捷運 公車 國小 國中 幼兒園 醫院"
         ],
         "公園": [
-          "活 機能 近便利商 店 近傳統市場 近百貨公司 近公園綠地 近 學校 近醫療 機構 近夜市 附近交通 松",
+          " 活機能 近便利商 店 近傳統市場 近百貨公司 近公園綠地 近學校 近醫療機構 近夜市 附近交通 祖師廟",
           " 地圖&街景 地圖 交通 學校 購物 餐飲 醫院 公園 銀行 <iframe id=\"detail-ma"
         ]
       },
       "source": "591",
-      "url": "https://sale.591.com.tw/home/house/detail/2/21147268.html",
-      "checked_at": "2026-11-20T18:52:11+08:00",
+      "url": "https://sale.591.com.tw/home/house/detail/2/20964695.html",
+      "checked_at": "2026-11-20T19:02:52+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -1397,42 +1397,12 @@
       "age_years": null,
       "elevator": "待確認",
       "amenities": {
-        "採買": [],
-        "交通": [
-          "利商店 近公園綠地 附近交通 大都會客運陽明山總站公車站 行業資質 經紀業名稱： 北科不動產開發有限公司",
-          "經證字第00506號 屋況特色 ✅緊臨前山公園  公車總站 綠意環繞  鳥語花香 ✅大樓私人男女泡湯池 "
+        "採買": [
+          "西門家樂福旁※高樓景觀有管理品味裝潢附車位★中信房屋張嘉書★",
+          "m.value} 生 活機能 近便利商 店 近傳統市場 近百貨公司 近公園綠地 近 學校 近醫 療機構 "
         ],
-        "醫療": [
-          "的新房 地圖&街景 地圖 交通 學校 購物 餐飲 醫院 公園 銀行 <iframe id=\"detail",
-          "</iframe> 周邊 交通 學校 購物 餐飲 醫院 公園 銀行 捷運 公車 國小 國中 幼兒園 醫院"
-        ],
-        "公園": [
-          "item.value} 生 活機能 近便利商店 近公園綠地 附近交通 大都會客運陽明山總站公車站 行業資",
-          "9年北市經證字第00506號 屋況特色 ✅緊臨前山公園  公車總站 綠意環繞  鳥語花香 ✅大樓私人男女"
-        ]
-      },
-      "source": "591",
-      "url": "https://sale.591.com.tw/home/house/detail/2/20819393.html",
-      "checked_at": "2026-11-20T18:52:13+08:00",
-      "status": "排除",
-      "reasons": [
-        "不在指定四區"
-      ]
-    },
-    {
-      "title": "${title}",
-      "address": "",
-      "district": "",
-      "type": "",
-      "price_twd": null,
-      "building_ping": null,
-      "land_ping": null,
-      "main_ping": null,
-      "age_years": null,
-      "elevator": "待確認",
-      "amenities": {
-        "採買": [],
         "交通": [
+          " 近 學校 近醫 療機構 近夜市 附近交通 小南門公車站 西門捷運站 行業資質 所屬公司： 中信房屋-南",
           " 交通 學校 購物 餐飲 醫院 公園 銀行 捷運 公車 國小 國中 幼兒園 醫院 藥店 此區域暫無信息 "
         ],
         "醫療": [
@@ -1440,16 +1410,74 @@
           "</iframe> 周邊 交通 學校 購物 餐飲 醫院 公園 銀行 捷運 公車 國小 國中 幼兒園 醫院"
         ],
         "公園": [
-          "item.value} 生 活機能 近便利商店 近公園綠地 近 學校 附近交通 信義安和捷運站 大安捷運",
-          "🚇 鄰近信義安和站、大安站🌳 大安森林公園🛍️ 遠東SOGO🍷 仁愛商圈☕ 安和商圈🏫 成熟"
+          " 活機能 近便利商 店 近傳統市場 近百貨公司 近公園綠地 近 學校 近醫 療機構 近夜市 附近交通 小",
+          " 地圖&街景 地圖 交通 學校 購物 餐飲 醫院 公園 銀行 <iframe id=\"detail-ma"
         ]
       },
       "source": "591",
-      "url": "https://sale.591.com.tw/home/house/detail/2/20966270.html",
-      "checked_at": "2026-11-20T18:52:14+08:00",
+      "url": "https://sale.591.com.tw/home/house/detail/2/21210121.html",
+      "checked_at": "2026-11-20T19:02:53+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
+      ]
+    },
+    {
+      "title": "${title}",
+      "address": "",
+      "district": "",
+      "type": "",
+      "price_twd": null,
+      "building_ping": null,
+      "land_ping": null,
+      "main_ping": null,
+      "age_years": null,
+      "elevator": "待確認",
+      "amenities": {
+        "採買": [
+          ".value} 生 活 機能 近便利商店 近 傳統市場 近百貨公司 近公園 綠地 近 學校 近醫 療機構"
+        ],
+        "交通": [
+          "校 近醫 療機構 近夜市 附近交通 捷運忠孝敦化站公車站 忠孝敦化捷運站 行業資質 所屬公司： 住商不動",
+          " 交通 學校 購物 餐飲 醫院 公園 銀行 捷運 公車 國小 國中 幼兒園 醫院 藥店 此區域暫無信息 "
+        ],
+        "醫療": [
+          "的新房 地圖&街景 地圖 交通 學校 購物 餐飲 醫院 公園 銀行 <iframe id=\"detail",
+          "</iframe> 周邊 交通 學校 購物 餐飲 醫院 公園 銀行 捷運 公車 國小 國中 幼兒園 醫院"
+        ],
+        "公園": [
+          "活 機能 近便利商店 近 傳統市場 近百貨公司 近公園 綠地 近 學校 近醫 療機構 近夜市 附近交通 ",
+          " 地圖&街景 地圖 交通 學校 購物 餐飲 醫院 公園 銀行 <iframe id=\"detail-ma"
+        ]
+      },
+      "source": "591",
+      "url": "https://sale.591.com.tw/home/house/detail/2/21274169.html",
+      "checked_at": "2026-11-20T19:02:54+08:00",
+      "status": "排除",
+      "reasons": [
+        "不在指定四區"
+      ]
+    }
+  ],
+  "reviewed": [
+    {
+      "title": "國揚翡翠森林｜綠綠光彩森林系電梯車墅",
+      "reviewed_at": "2026-11-20",
+      "expires_at": "2026-11-27T23:59:59+08:00",
+      "address": "台南市安南區環館路（完整門牌待仲介確認）",
+      "price_twd": 34500000,
+      "building_ping": 108.84,
+      "land_ping": 55.21,
+      "age_years": 11,
+      "shopping": "刊登稱在地商店、超商及中洲寮生活圈；超市／市場名稱和實際距離待核對，尚不能評為採買方便",
+      "transport": "刊登提及和順轉運站、北外環及國道1號；距離和車程未實測",
+      "medical": "生活圈介紹提及市立安南醫院；距離未核對",
+      "park": "刊登標示近公園、鄰近歷史博物館；公園名稱及步行距離待核對",
+      "notes": "刊登可見不代表仲介已確認仍可售。管理費刊登每月約5422元；主建物92.89坪，總建坪含附屬空間。不同仲介同社區相同坪數可能重複，尚未認定為不同物件。未使用實價登錄門牌代替待售門牌。",
+      "url": "https://www.sinyi.com.tw/buy/house/8443RL",
+      "evidence_urls": [
+        "https://www.sinyi.com.tw/buy/house/8443RL",
+        "https://www.sinyi.com.tw/buy/house/HS86590HB"
       ]
     }
   ]
