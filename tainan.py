@@ -62,7 +62,9 @@ def qualify(row):
     reasons = []
     if row.get('district') not in CONFIG['districts']:
         return '排除', ['不在指定四區']
-    if row.get('type') not in ('透天別墅', '透天厝', '別墅', '別墅/透天', '透天/店面'):
+    if not row.get('type'):
+        reasons.append('住宅類型待確認')
+    elif row.get('type') not in ('透天別墅', '透天厝', '別墅', '別墅/透天', '透天/店面'):
         return '排除', ['非已確認透天類型']
     for key, limit, minimum in [('price_twd', CONFIG['max_price_twd'], False),
                                  ('building_ping', CONFIG['min_building_ping'], True),
@@ -164,7 +166,7 @@ def discover(source, html, base):
 
 def collect(max_pages=3, max_details=20):
     report = dict(title=CONFIG['title'], config=CONFIG, checked_at=datetime.now(ZoneInfo('Asia/Taipei')).isoformat(timespec='seconds'),
-                  sources=[], listings=[], pending=[])
+                  sources=[], listings=[], pending=[], excluded=[])
     for name, (root, _) in SOURCES.items():
         state = dict(source=name, pages=0, discovered=0, parsed=0, matched=0, errors=[],
                      scope=f'最多{max_pages}頁、{max_details}詳細頁；不代表全市場', status='未完成')
@@ -200,6 +202,7 @@ def collect(max_pages=3, max_details=20):
                     if row['status'] == '刊登符合':
                         report['listings'].append(row);state['matched'] += 1
                     elif row['status'] == '待核對':report['pending'].append(row)
+                    else:report['excluded'].append(row)
                 except (requests.RequestException, ValueError, KeyError, TypeError, AttributeError) as exc:
                     state['errors'].append(str(exc)[:180])
                 time.sleep(.2)
@@ -227,7 +230,14 @@ def messages(report):
             if r['reasons']:lines.append('缺項：'+'、'.join(r['reasons']))
             lines.extend(['周邊為刊登線索，名稱／距離／行車時間未獨立驗證。',r['url']])
             blocks.append('\n'.join(lines))
-    blocks.append('來源狀態\n'+'\n'.join(f"{s['source']}：{s['status']}；讀取{s['parsed']}筆，錯誤{len(s['errors'])}項" for s in report['sources']))
+    reasons = {}
+    labels = {'price_twd':'總價', 'building_ping':'建坪', 'land_ping':'地坪', 'age_years':'屋齡'}
+    for r in report.get('excluded', []):
+        for reason in r['reasons']:
+            for key, label in labels.items():reason = reason.replace(key, label)
+            reasons[reason] = reasons.get(reason, 0) + 1
+    blocks.append('排除原因（每筆依第一個不符條件分類，非市場總量）\n'+('\n'.join(f'{k}：{v}筆' for k,v in reasons.items()) or '本輪無可分類的排除資料'))
+    blocks.append('來源狀態\n'+'\n'.join(f"{s['source']}：{s['status']}；讀取{s['parsed']}筆，錯誤{len(s['errors'])}項"+('；'+s['errors'][0] if s['errors'] else '') for s in report['sources']))
     blocks.append('僅本輪公開刊登；是否仍可售、電梯現況、合法登記面積與道路持分需看屋核對。未讀取不代表沒有房源。')
     chunks, current = [], ''
     for block in blocks:

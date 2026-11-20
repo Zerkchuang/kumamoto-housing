@@ -53,6 +53,13 @@ class TainanTests(unittest.TestCase):
         self.assertIn('台南電梯透天',text);self.assertIn('讀取失敗',text);self.assertIn('未讀取不代表沒有房源',text)
         self.assertNotIn('萬円',text);self.assertTrue(all(len(x)<=4500 for x in messages(report)))
 
+    def test_exclusion_summary(self):
+        report=dict(checked_at='2026-11-20',listings=[],pending=[],sources=[],excluded=[dict(reasons=['building_ping不符條件']),dict(reasons=['age_years不符條件'])])
+        text='\n'.join(messages(report))
+        self.assertIn('建坪不符條件：1筆',text)
+        self.assertIn('屋齡不符條件：1筆',text)
+        r=self.row();r['type']='';self.assertEqual(qualify(r)[0],'待核對')
+
     def test_schedule_and_priorities(self):
         self.assertEqual(CONFIG['schedule_cron_utc'],'0 0 * * 6')
         self.assertEqual(CONFIG['priority'],['採買','交通','醫療'])
