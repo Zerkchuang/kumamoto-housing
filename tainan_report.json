@@ -1,0 +1,95 @@
+{
+  "title": "台南電梯透天",
+  "config": {
+    "title": "台南電梯透天",
+    "purpose": "未來自住",
+    "districts": [
+      "安南區",
+      "北區",
+      "安平區",
+      "中西區"
+    ],
+    "max_price_twd": 40000000,
+    "min_building_ping": 100,
+    "min_land_ping": 40,
+    "elevator": "installed",
+    "max_driving_distance_km": null,
+    "priority": [
+      "採買",
+      "交通",
+      "醫療"
+    ],
+    "schedule_timezone": "Asia/Taipei",
+    "schedule_cron_utc": "0 0 * * 6",
+    "source_names": [
+      "信義房屋",
+      "永慶房仲網",
+      "幸福家不動產",
+      "591",
+      "5168實價登錄比價王"
+    ],
+    "preferences": [
+      "附近有公園"
+    ],
+    "max_age_years": 20
+  },
+  "checked_at": "2026-11-20T18:44:07+08:00",
+  "sources": [
+    {
+      "source": "幸福家",
+      "pages": 3,
+      "discovered": 20,
+      "parsed": 20,
+      "matched": 0,
+      "errors": [],
+      "scope": "最多3頁、20詳細頁；不代表全市場",
+      "status": "部分範圍已讀取（達本輪上限）"
+    },
+    {
+      "source": "永慶",
+      "pages": 0,
+      "discovered": 0,
+      "parsed": 0,
+      "matched": 0,
+      "errors": [
+        "403 Client Error: Forbidden for url: https://buy.yungching.com.tw/list/%E5%8F%B0%E5%8D%97%E5%B8%82-_c/%E9%9B%BB%E6%A2%AF_kw"
+      ],
+      "scope": "最多3頁、20詳細頁；不代表全市場",
+      "status": "讀取失敗"
+    },
+    {
+      "source": "信義",
+      "pages": 1,
+      "discovered": 18,
+      "parsed": 18,
+      "matched": 0,
+      "errors": [],
+      "scope": "最多3頁、20詳細頁；不代表全市場",
+      "status": "部分範圍已讀取"
+    },
+    {
+      "source": "5168",
+      "pages": 0,
+      "discovered": 0,
+      "parsed": 0,
+      "matched": 0,
+      "errors": [
+        "403 Client Error: Forbidden for url: https://buy.houseprice.tw/list/%E5%8F%B0%E5%8D%97%E5%B8%82_city/"
+      ],
+      "scope": "最多3頁、20詳細頁；不代表全市場",
+      "status": "讀取失敗"
+    },
+    {
+      "source": "591",
+      "pages": 1,
+      "discovered": 5,
+      "parsed": 5,
+      "matched": 0,
+      "errors": [],
+      "scope": "最多3頁、20詳細頁；不代表全市場",
+      "status": "部分範圍已讀取"
+    }
+  ],
+  "listings": [],
+  "pending": []
+}
