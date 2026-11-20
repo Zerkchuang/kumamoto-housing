@@ -1,0 +1,33 @@
+{
+  "title": "台南電梯透天",
+  "purpose": "未來自住",
+  "districts": [
+    "安南區",
+    "北區",
+    "安平區",
+    "中西區"
+  ],
+  "max_price_twd": 40000000,
+  "min_building_ping": 100,
+  "min_land_ping": 40,
+  "elevator": "installed",
+  "max_driving_distance_km": null,
+  "priority": [
+    "採買",
+    "交通",
+    "醫療"
+  ],
+  "schedule_timezone": "Asia/Taipei",
+  "schedule_cron_utc": "0 0 * * 6",
+  "source_names": [
+    "信義房屋",
+    "永慶房仲網",
+    "幸福家不動產",
+    "591",
+    "5168實價登錄比價王"
+  ],
+  "preferences": [
+    "附近有公園"
+  ],
+  "max_age_years": 20
+}
