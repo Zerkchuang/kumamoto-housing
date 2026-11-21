@@ -47,7 +47,7 @@ def build_messages(report, rows):
     blocks = [f"🏡 熊本購屋搜尋狀態\n{report['checked_at']}\n本次候選刊登 {len(rows)} 筆（跨站可能重複）\n一戶建 {house_count} 筆（新築 {new_house_count} 筆）；大樓／新築大樓 {condo_count} 筆。\n🌳 光之森本區 {hikari_count} 筆：屋齡未滿15年（含新築），一戶建不限預算與面積，大樓須35坪以上；依可讀取的公開列表分頁收集。\n其他區域：屋齡15年內；一戶建價格上限72,992,700円；大樓不限價格\n一戶建土地≥200㎡、建物≥100㎡；大樓豪宅候選：專有面積≥35坪（約115.70㎡），不限價格"]
     for s in report['sources']:
         blocks.append(f"【{s['source']}】{s['status']}\n範圍：{s['scope']}\n詳細頁 {s['discovered']}／候選 {s['matched']}／讀取錯誤 {s['errors']}／無法解析或非公開 {s.get('unreadable', 0)}")
-    blocks.append('以下是本次讀取的候選物件；網站刊登不等於仲介已確認仍可售。大樓為面積候選，管理品質與實際室內淨面積待確認。')
+    blocks.append('🔴 新增＝本輪首次收錄的刊登，不代表屋主剛上市；跨站可能重複。以下是本次讀取的候選物件；網站刊登不等於仲介已確認仍可售。大樓為面積候選，管理品質與實際室內淨面積待確認。')
     priority=('菊陽町','熊本市東區','熊本市北區','熊本市中央區','光之森','合志市')
     rows=sorted(rows,key=lambda r:(r['property_type'] not in {'house','house_new'},r['region'] not in priority, priority.index(r['region']) if r['region'] in priority else r['region'],r['current_price']==0,r['current_price']))
     current_region=None
@@ -71,7 +71,8 @@ def build_messages(report, rows):
         if kind in {'house_new', 'condo_new'}:
             area += '；建案面積與價格區間需確認是否屬同一戶'
         star = '⭐ 約40坪優先 ' if not is_house and r['building_area'] >= 132.23 else ''
-        blocks.append(f"{star}【{r['region']}｜{label}｜{source}】\n{r['title'][:180]}\n{price}｜{area}\n{r['layout']}｜{r['build_year']}\n{tax_budget(r['current_price'])}\n{r.get('address', '地址待確認')}\n{r['url']}\n{amenity_text(r)}")
+        new_marker = '🔴 新增｜' if r['property_id'] in report.get('new_property_ids', []) else ''
+        blocks.append(f"{new_marker}{star}【{r['region']}｜{label}｜{source}】\n{r['title'][:180]}\n{price}｜{area}\n{r['layout']}｜{r['build_year']}\n{tax_budget(r['current_price'])}\n{r.get('address', '地址待確認')}\n{r['url']}\n{amenity_text(r)}")
     blocks.extend(pending_blocks(report))
     if report.get("builder_checked_at"):
         blocks.extend(builder_blocks(report))

@@ -418,11 +418,13 @@ def save(items, report=None):
     today = datetime.now(ZoneInfo('Asia/Tokyo')).strftime("%Y-%m-%d")
     ids = {item["property_id"] for item in items}
     new = changed = 0
+    new_ids = []
     for item in items:
         old = cur.execute(
             "SELECT current_price,price_basis FROM properties WHERE property_id=?", (item["property_id"],)
         ).fetchone()
         if old is None:
+            new_ids.append(item["property_id"])
             new += 1
             cur.execute(
                 """INSERT INTO properties(
@@ -465,6 +467,7 @@ def save(items, report=None):
         if pid not in ids:
             cur.execute("UPDATE properties SET status='unverified' WHERE property_id=?", (pid,))
     if report is not None:
+        report['new_property_ids'] = sorted(new_ids)
         cur.execute('CREATE TABLE IF NOT EXISTS run_report(id INTEGER PRIMARY KEY, payload TEXT)')
         cur.execute('INSERT OR REPLACE INTO run_report VALUES(1,?)', (json.dumps(report, ensure_ascii=False),))
     conn.commit()

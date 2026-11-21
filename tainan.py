@@ -228,12 +228,32 @@ def collect(max_pages=3, max_details=20):
     return report
 
 
+
+def mark_new_listings(report, previous):
+    # Retain historical URLs even when a source fails or a listing disappears.
+    def key(row):
+        parsed = urlparse(row['url'])
+        return parsed.netloc.lower() + parsed.path.rstrip('/')
+    known = set(previous.get('known_listing_keys', []))
+    for group in ('listings', 'pending', 'reviewed', 'excluded'):
+        known.update(key(r) for r in previous.get(group, []) if r.get('url'))
+    current = set()
+    for group in ('listings', 'pending', 'reviewed', 'excluded'):
+        for row in report.get(group, []):
+            if row.get('url'):
+                identity = key(row)
+                row['is_new_listing'] = identity not in known
+                current.add(identity)
+    report['known_listing_keys'] = sorted(known | current)
+    return report
+
+
 def messages(report):
     blocks = [f"🏡 {CONFIG['title']}\n核對：{report['checked_at']}\n安南／北區／安平／中西\n總價≤4,000萬｜建坪≥100坪｜地坪≥40坪｜屋齡≤20年｜已有電梯\n採買→交通→醫療；公園加分。無五公里限制。\n刊登符合 {len(report['listings'])} 筆；待核對 {len(report['pending'])} 筆。跨站未合併，不代表獨立房屋數。"]
     for status, rows in [('刊登符合', report['listings']), ('待核對', report['pending'])]:
         for r in rows:
             price = f"{r['price_twd']/10000:,.0f}萬" if r['price_twd'] else '待確認'
-            lines = [f"【{status}｜{r['source']}】{r['title'][:120]}",r['address'],
+            lines = [f"{'🔴 新增｜' if r.get('is_new_listing') else ''}【{status}｜{r['source']}】{r['title'][:120]}",r['address'],
                      f"{price}｜建坪 {r['building_ping']}｜地坪 {r['land_ping']}", '屋齡：'+str(r.get('age_years'))+'年', '電梯：'+r['elevator']]
             for k in ['採買','交通','醫療','公園']:
                 lines.append(k+'：'+('；'.join(r['amenities'][k]) if r['amenities'][k] else '待確認'))
@@ -241,7 +261,7 @@ def messages(report):
             lines.extend(['周邊為刊登線索，名稱／距離／行車時間未獨立驗證。',r['url']])
             blocks.append('\n'.join(lines))
     for r in report.get('reviewed', []):
-        blocks.append(f"【人工查核補充｜非本輪自動取得】{r['title']}\n查核日期：{r['reviewed_at']}\n{r['address']}\n{r['price_twd']/10000:,.0f}萬｜建坪{r['building_ping']}坪｜地坪{r['land_ping']}坪｜屋齡約{r['age_years']}年\n電梯：刊登標示有電梯，現況待看屋\n採買：{r['shopping']}\n交通：{r['transport']}\n醫療：{r['medical']}\n公園：{r['park']}\n提醒：{r['notes']}\n{r['url']}")
+        blocks.append(f"{'🔴 新增｜' if r.get('is_new_listing') else ''}【人工查核補充｜非本輪自動取得】{r['title']}\n查核日期：{r['reviewed_at']}\n{r['address']}\n{r['price_twd']/10000:,.0f}萬｜建坪{r['building_ping']}坪｜地坪{r['land_ping']}坪｜屋齡約{r['age_years']}年\n電梯：刊登標示有電梯，現況待看屋\n採買：{r['shopping']}\n交通：{r['transport']}\n醫療：{r['medical']}\n公園：{r['park']}\n提醒：{r['notes']}\n{r['url']}")
     reasons = {}
     labels = {'price_twd':'總價', 'building_ping':'建坪', 'land_ping':'地坪', 'age_years':'屋齡'}
     for r in report.get('excluded', []):
@@ -250,7 +270,7 @@ def messages(report):
             reasons[reason] = reasons.get(reason, 0) + 1
     blocks.append('排除原因（每筆依第一個不符條件分類，非市場總量）\n'+('\n'.join(f'{k}：{v}筆' for k,v in reasons.items()) or '本輪無可分類的排除資料'))
     blocks.append('來源狀態\n'+'\n'.join(f"{s['source']}：{s['status']}；讀取{s['parsed']}筆，錯誤{len(s['errors'])}項"+('；'+s['errors'][0] if s['errors'] else '') for s in report['sources']))
-    blocks.append('僅本輪公開刊登；是否仍可售、電梯現況、合法登記面積與道路持分需看屋核對。未讀取不代表沒有房源。')
+    blocks.append('🔴 新增＝本輪首次收錄的刊登，不代表屋主剛上市；跨站可能重複。僅本輪公開刊登；是否仍可售、電梯現況、合法登記面積與道路持分需看屋核對。未讀取不代表沒有房源。')
     chunks, current = [], ''
     for block in blocks:
         if len(current)+len(block)+2 > 4500:
@@ -262,7 +282,10 @@ def messages(report):
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--push',action='store_true');parser.add_argument('--pages',type=int,default=3);parser.add_argument('--details',type=int,default=20)
-    args=parser.parse_args();report=collect(args.pages,args.details)
+    args=parser.parse_args()
+    previous_path = ROOT/'tainan_report.json'
+    previous = json.loads(previous_path.read_text()) if previous_path.exists() else {}
+    report=mark_new_listings(collect(args.pages,args.details), previous)
     (ROOT/'tainan_report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
     parts=messages(report);(ROOT/'tainan_preview.txt').write_text('\n\n---\n\n'.join(parts)+'\n')
     if args.push:
