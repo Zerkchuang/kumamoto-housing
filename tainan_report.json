@@ -33,7 +33,7 @@
     ],
     "max_age_years": 20
   },
-  "checked_at": "2026-11-21T11:51:13+08:00",
+  "checked_at": "2026-11-21T14:31:02+08:00",
   "sources": [
     {
       "source": "幸福家",
@@ -122,7 +122,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/8443RL",
-      "checked_at": "2026-11-21T11:51:50+08:00",
+      "checked_at": "2026-11-21T14:31:30+08:00",
       "status": "待核對",
       "reasons": [
         "price_twd待確認"
@@ -150,7 +150,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/99317",
-      "checked_at": "2026-11-21T11:51:20+08:00",
+      "checked_at": "2026-11-21T14:31:06+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -176,7 +176,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/94683",
-      "checked_at": "2026-11-21T11:51:22+08:00",
+      "checked_at": "2026-11-21T14:31:07+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -204,7 +204,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/91965",
-      "checked_at": "2026-11-21T11:51:23+08:00",
+      "checked_at": "2026-11-21T14:31:08+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -230,7 +230,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/89471",
-      "checked_at": "2026-11-21T11:51:24+08:00",
+      "checked_at": "2026-11-21T14:31:09+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -256,7 +256,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/109690",
-      "checked_at": "2026-11-21T11:51:26+08:00",
+      "checked_at": "2026-11-21T14:31:10+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -284,7 +284,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/109666",
-      "checked_at": "2026-11-21T11:51:27+08:00",
+      "checked_at": "2026-11-21T14:31:11+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -312,7 +312,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/109608",
-      "checked_at": "2026-11-21T11:51:28+08:00",
+      "checked_at": "2026-11-21T14:31:12+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -342,7 +342,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/109351",
-      "checked_at": "2026-11-21T11:51:29+08:00",
+      "checked_at": "2026-11-21T14:31:13+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -372,7 +372,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/109346",
-      "checked_at": "2026-11-21T11:51:30+08:00",
+      "checked_at": "2026-11-21T14:31:13+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -402,7 +402,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/109337",
-      "checked_at": "2026-11-21T11:51:31+08:00",
+      "checked_at": "2026-11-21T14:31:14+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -428,7 +428,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/109195",
-      "checked_at": "2026-11-21T11:51:32+08:00",
+      "checked_at": "2026-11-21T14:31:15+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -454,7 +454,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/109179",
-      "checked_at": "2026-11-21T11:51:34+08:00",
+      "checked_at": "2026-11-21T14:31:16+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -480,7 +480,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/109174",
-      "checked_at": "2026-11-21T11:51:35+08:00",
+      "checked_at": "2026-11-21T14:31:17+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -508,7 +508,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/109150",
-      "checked_at": "2026-11-21T11:51:36+08:00",
+      "checked_at": "2026-11-21T14:31:18+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -534,7 +534,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/108906",
-      "checked_at": "2026-11-21T11:51:37+08:00",
+      "checked_at": "2026-11-21T14:31:19+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -560,7 +560,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/108895",
-      "checked_at": "2026-11-21T11:51:38+08:00",
+      "checked_at": "2026-11-21T14:31:20+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -586,7 +586,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/108880",
-      "checked_at": "2026-11-21T11:51:39+08:00",
+      "checked_at": "2026-11-21T14:31:21+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -614,7 +614,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/108736",
-      "checked_at": "2026-11-21T11:51:40+08:00",
+      "checked_at": "2026-11-21T14:31:22+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -640,7 +640,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/108681",
-      "checked_at": "2026-11-21T11:51:41+08:00",
+      "checked_at": "2026-11-21T14:31:23+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -666,7 +666,7 @@
       },
       "source": "幸福家",
       "url": "https://www.singfujia.com/buy/detail/108596",
-      "checked_at": "2026-11-21T11:51:42+08:00",
+      "checked_at": "2026-11-21T14:31:24+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -704,7 +704,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/0694PX",
-      "checked_at": "2026-11-21T11:51:52+08:00",
+      "checked_at": "2026-11-21T14:31:32+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -742,7 +742,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/8464LB",
-      "checked_at": "2026-11-21T11:51:53+08:00",
+      "checked_at": "2026-11-21T14:31:33+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -780,7 +780,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/3102TJ",
-      "checked_at": "2026-11-21T11:51:55+08:00",
+      "checked_at": "2026-11-21T14:31:34+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -818,7 +818,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/0161RD",
-      "checked_at": "2026-11-21T11:51:56+08:00",
+      "checked_at": "2026-11-21T14:31:36+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -856,7 +856,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/1684RB",
-      "checked_at": "2026-11-21T11:51:58+08:00",
+      "checked_at": "2026-11-21T14:31:40+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -894,7 +894,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/3944BX",
-      "checked_at": "2026-11-21T11:52:03+08:00",
+      "checked_at": "2026-11-21T14:31:43+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -927,7 +927,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/8495CH",
-      "checked_at": "2026-11-21T11:52:07+08:00",
+      "checked_at": "2026-11-21T14:31:45+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -965,7 +965,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/6926UF",
-      "checked_at": "2026-11-21T11:52:09+08:00",
+      "checked_at": "2026-11-21T14:31:47+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -1003,7 +1003,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/1326HB",
-      "checked_at": "2026-11-21T11:52:11+08:00",
+      "checked_at": "2026-11-21T14:31:52+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -1041,7 +1041,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/8340DQ",
-      "checked_at": "2026-11-21T11:52:12+08:00",
+      "checked_at": "2026-11-21T14:31:55+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -1079,7 +1079,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/9722YU",
-      "checked_at": "2026-11-21T11:52:14+08:00",
+      "checked_at": "2026-11-21T14:31:57+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -1117,7 +1117,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/6517RQ",
-      "checked_at": "2026-11-21T11:52:16+08:00",
+      "checked_at": "2026-11-21T14:31:58+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -1155,7 +1155,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/0265GJ",
-      "checked_at": "2026-11-21T11:52:22+08:00",
+      "checked_at": "2026-11-21T14:32:00+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -1193,7 +1193,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/34622L",
-      "checked_at": "2026-11-21T11:52:24+08:00",
+      "checked_at": "2026-11-21T14:32:04+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -1231,7 +1231,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/5111JT",
-      "checked_at": "2026-11-21T11:52:26+08:00",
+      "checked_at": "2026-11-21T14:32:07+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -1269,7 +1269,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/1414NW",
-      "checked_at": "2026-11-21T11:52:27+08:00",
+      "checked_at": "2026-11-21T14:32:11+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -1307,7 +1307,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/3640AT",
-      "checked_at": "2026-11-21T11:52:29+08:00",
+      "checked_at": "2026-11-21T14:32:16+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -1344,7 +1344,7 @@
       },
       "source": "信義",
       "url": "https://www.sinyi.com.tw/buy/house/3812BK",
-      "checked_at": "2026-11-21T11:52:31+08:00",
+      "checked_at": "2026-11-21T14:32:18+08:00",
       "status": "排除",
       "reasons": [
         "building_ping不符條件"
@@ -1361,64 +1361,100 @@
       "land_ping": null,
       "main_ping": null,
       "age_years": null,
-      "elevator": "待確認",
-      "amenities": {
-        "採買": [
-          "em.value} 生活機能 近便利商店 近傳統 市場 近百貨公 司 近公園綠地 近 學校 近醫療機構 "
-        ],
-        "交通": [
-          "醫療機構 近夜市 附近交通 松江南京捷運站 台北火車站 行業資質 經紀業名稱： 好享家不動產仲介經紀有限",
-          " 交通 學校 購物 餐飲 醫院 公園 銀行 捷運 公車 國小 國中 幼兒園 醫院 藥店 此區域暫無信息 "
-        ],
-        "醫療": [
-          "的新房 地圖&街景 地圖 交通 學校 購物 餐飲 醫院 公園 銀行 <iframe id=\"detail",
-          "</iframe> 周邊 交通 學校 購物 餐飲 醫院 公園 銀行 捷運 公車 國小 國中 幼兒園 醫院"
-        ],
-        "公園": [
-          "活機能 近便利商店 近傳統 市場 近百貨公 司 近公園綠地 近 學校 近醫療機構 近夜市 附近交通 松江",
-          "50米 近松江南京金融商圈 近長榮桂冠酒店 『松江公園、伊通公園』 『長安國中、長安國小』 『三創園區、"
-        ]
-      },
-      "source": "591",
-      "url": "https://sale.591.com.tw/home/house/detail/2/21165518.html",
-      "checked_at": "2026-11-21T11:52:35+08:00",
-      "status": "排除",
-      "reasons": [
-        "不在指定四區"
-      ],
-      "is_new_listing": true
-    },
-    {
-      "title": "${title}",
-      "address": "",
-      "district": "",
-      "type": "",
-      "price_twd": null,
-      "building_ping": null,
-      "land_ping": null,
-      "main_ping": null,
-      "age_years": null,
       "elevator": "刊登稱有電梯，設備現況待看屋",
       "amenities": {
         "採買": [
-          "em.value} 生 活機能 近便利商店 近傳統市場 近百貨公司 近公園綠地 近學校 近醫療機構 近 "
+          " ${item.value} 生 活 機能 近傳統市場 近 學校 附近交通 重陽橋公車站 士林捷運站 屋",
+          "修飾,牆壁面可直掛電視. 其他資訊： 近小學及傳統市場 交通便利 步行3分鐘的重陽橋公車站有多線公車可快"
         ],
         "交通": [
-          "學校 近醫療機構 近 夜市 附近交通 民生敦化路口公車站 中山國中捷運站 行業資質 所屬公司： 住商不動",
-          " 交通 學校 購物 餐飲 醫院 公園 銀行 捷運 公車 國小 國中 幼兒園 醫院 藥店 此區域暫無信息 "
+          " 活 機能 近傳統市場 近 學校 附近交通 重陽橋公車站 士林捷運站 屋 況特色 ～屋主自售～士林中正路",
+          "： 近小學及傳統市場 交通便利 步行3分鐘的重陽橋公車站有多線公車可快速抵達士林及捷運站"
         ],
         "醫療": [
           "的新房 地圖&街景 地圖 交通 學校 購物 餐飲 醫院 公園 銀行 <iframe id=\"detail",
           "</iframe> 周邊 交通 學校 購物 餐飲 醫院 公園 銀行 捷運 公車 國小 國中 幼兒園 醫院"
         ],
         "公園": [
-          "生 活機能 近便利商店 近傳統市場 近百貨公司 近公園綠地 近學校 近醫療機構 近 夜市 附近交通 民生",
+          " 距已開工興建捷運環狀線北環段Y24社正公園站,步行約5分鐘",
           " 地圖&街景 地圖 交通 學校 購物 餐飲 醫院 公園 銀行 <iframe id=\"detail-ma"
         ]
       },
       "source": "591",
-      "url": "https://sale.591.com.tw/home/house/detail/2/21291430.html",
-      "checked_at": "2026-11-21T11:52:36+08:00",
+      "url": "https://sale.591.com.tw/home/house/detail/2/21098401.html",
+      "checked_at": "2026-11-21T14:32:21+08:00",
+      "status": "排除",
+      "reasons": [
+        "不在指定四區"
+      ],
+      "is_new_listing": true
+    },
+    {
+      "title": "${title}",
+      "address": "",
+      "district": "",
+      "type": "",
+      "price_twd": null,
+      "building_ping": null,
+      "land_ping": null,
+      "main_ping": null,
+      "age_years": null,
+      "elevator": "待確認",
+      "amenities": {
+        "採買": [
+          "m.value} 生 活機能 近 便利商店 近傳統市場 近百貨公司 近公園綠 地 近學校 附近交通 世貿"
+        ],
+        "交通": [
+          "近公園綠 地 近學校 附近交通 世貿中心(基隆路)公車站 信義光復路口公車站 台北101/世貿捷運站 台",
+          "北火車站 行業資質 所屬公司： 住商不動產-仁愛光復加盟店"
+        ],
+        "醫療": [
+          "的新房 地圖&街景 地圖 交通 學校 購物 餐飲 醫院 公園 銀行 <iframe id=\"detail",
+          "</iframe> 周邊 交通 學校 購物 餐飲 醫院 公園 銀行 捷運 公車 國小 國中 幼兒園 醫院"
+        ],
+        "公園": [
+          " 活機能 近 便利商店 近傳統市場 近百貨公司 近公園綠 地 近學校 附近交通 世貿中心(基隆路)公車站",
+          " 地圖&街景 地圖 交通 學校 購物 餐飲 醫院 公園 銀行 <iframe id=\"detail-ma"
+        ]
+      },
+      "source": "591",
+      "url": "https://sale.591.com.tw/home/house/detail/2/21151126.html",
+      "checked_at": "2026-11-21T14:32:22+08:00",
+      "status": "排除",
+      "reasons": [
+        "不在指定四區"
+      ],
+      "is_new_listing": true
+    },
+    {
+      "title": "${title}",
+      "address": "",
+      "district": "",
+      "type": "",
+      "price_twd": null,
+      "building_ping": null,
+      "land_ping": null,
+      "main_ping": null,
+      "age_years": null,
+      "elevator": "刊登稱有電梯，設備現況待看屋",
+      "amenities": {
+        "採買": [],
+        "交通": [
+          " 四、如有註記步行至捷運、公車站距離與時間",
+          " 交通 學校 購物 餐飲 醫院 公園 銀行 捷運 公車 國小 國中 幼兒園 醫院 藥店 此區域暫無信息 "
+        ],
+        "醫療": [
+          "的新房 地圖&街景 地圖 交通 學校 購物 餐飲 醫院 公園 銀行 <iframe id=\"detail",
+          "</iframe> 周邊 交通 學校 購物 餐飲 醫院 公園 銀行 捷運 公車 國小 國中 幼兒園 醫院"
+        ],
+        "公園": [
+          "已含售金內 生活機能 近便利商店 近公園綠地 近 學校 近醫療機構 行業資質 所屬公司： ",
+          " 地圖&街景 地圖 交通 學校 購物 餐飲 醫院 公園 銀行 <iframe id=\"detail-ma"
+        ]
+      },
+      "source": "591",
+      "url": "https://sale.591.com.tw/home/house/detail/2/21034998.html",
+      "checked_at": "2026-11-21T14:32:26+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -1438,10 +1474,11 @@
       "elevator": "刊登稱有電梯，設備現況待看屋",
       "amenities": {
         "採買": [
-          ".value} 生 活 機能 近便利商店 近傳 統市場 近公園綠地 近學校 近醫療機構 附近交通 奇岩捷",
-          "運站步行約7分鐘 🌈近北投士林科技園區 🌈近學校、市場、公園"
+          "近商家林立~~逛街購物吃美食一次滿足 十:鄰近泰順市場跟龍泉市場~~附近也有全聯跟家樂福~~媽媽買菜很方",
+          " 新莊四維市場店面"
         ],
         "交通": [
+          " 四:近台電大樓捷運站~~近建國高架跟新生南路多線公車~~交通便利 五:大安區優質地段~~台大綜合體育館",
           " 交通 學校 購物 餐飲 醫院 公園 銀行 捷運 公車 國小 國中 幼兒園 醫院 藥店 此區域暫無信息 "
         ],
         "醫療": [
@@ -1449,47 +1486,13 @@
           "</iframe> 周邊 交通 學校 購物 餐飲 醫院 公園 銀行 捷運 公車 國小 國中 幼兒園 醫院"
         ],
         "公園": [
-          "ue} 生 活 機能 近便利商店 近傳 統市場 近公園綠地 近學校 近醫療機構 附近交通 奇岩捷運站 行",
-          "行約7分鐘 🌈近北投士林科技園區 🌈近學校、市場、公園"
+          "item.value} 生活機能 近 便利商店 近公園綠 地 近 學校 附近交通 台電大樓捷運站 行業資",
+          "區優質地段~~台大綜合體育館就在對面~~離大安森林公園也很近~~休閒運動親子時光都超棒 六:國泰方正格局"
         ]
       },
       "source": "591",
-      "url": "https://sale.591.com.tw/home/house/detail/2/20651373.html",
-      "checked_at": "2026-11-21T11:52:39+08:00",
-      "status": "排除",
-      "reasons": [
-        "不在指定四區"
-      ],
-      "is_new_listing": true
-    },
-    {
-      "title": "${title}",
-      "address": "",
-      "district": "",
-      "type": "",
-      "price_twd": null,
-      "building_ping": null,
-      "land_ping": null,
-      "main_ping": null,
-      "age_years": null,
-      "elevator": "待確認",
-      "amenities": {
-        "採買": [],
-        "交通": [
-          " 交通 學校 購物 餐飲 醫院 公園 銀行 捷運 公車 國小 國中 幼兒園 醫院 藥店 此區域暫無信息 "
-        ],
-        "醫療": [
-          "的新房 地圖&街景 地圖 交通 學校 購物 餐飲 醫院 公園 銀行 <iframe id=\"detail",
-          "</iframe> 周邊 交通 學校 購物 餐飲 醫院 公園 銀行 捷運 公車 國小 國中 幼兒園 醫院"
-        ],
-        "公園": [
-          " 地圖&街景 地圖 交通 學校 購物 餐飲 醫院 公園 銀行 <iframe id=\"detail-ma",
-          "frame> 周邊 交通 學校 購物 餐飲 醫院 公園 銀行 捷運 公車 國小 國中 幼兒園 醫院 藥店"
-        ]
-      },
-      "source": "591",
-      "url": "https://sale.591.com.tw/home/house/detail/2/20923078.html",
-      "checked_at": "2026-11-21T11:52:40+08:00",
+      "url": "https://sale.591.com.tw/home/house/detail/2/21162065.html",
+      "checked_at": "2026-11-21T14:32:27+08:00",
       "status": "排除",
       "reasons": [
         "不在指定四區"
@@ -1525,6 +1528,10 @@
     "sale.591.com.tw/home/house/detail/2/20923078.html",
     "sale.591.com.tw/home/house/detail/2/20957998.html",
     "sale.591.com.tw/home/house/detail/2/20964695.html",
+    "sale.591.com.tw/home/house/detail/2/21034998.html",
+    "sale.591.com.tw/home/house/detail/2/21098401.html",
+    "sale.591.com.tw/home/house/detail/2/21151126.html",
+    "sale.591.com.tw/home/house/detail/2/21162065.html",
     "sale.591.com.tw/home/house/detail/2/21165518.html",
     "sale.591.com.tw/home/house/detail/2/21210121.html",
     "sale.591.com.tw/home/house/detail/2/21274169.html",
