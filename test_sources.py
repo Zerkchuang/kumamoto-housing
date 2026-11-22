@@ -8,9 +8,9 @@ from line_notify import build_messages
 class SourcesTest(unittest.TestCase):
     def test_hikari_age_is_strict_and_address_not_station(self):
         now = datetime(2026,9,25)
-        self.assertTrue(crawler.within_age_limit('2011年10月', strict=True, now=now))
-        self.assertFalse(crawler.within_age_limit('2011年9月', strict=True, now=now))
-        self.assertFalse(crawler.within_age_limit('2010年4月', strict=True, now=now))
+        self.assertTrue(crawler.within_age_limit('2006年10月', strict=True, now=now))
+        self.assertTrue(crawler.within_age_limit('2006年9月', strict=True, now=now))
+        self.assertFalse(crawler.within_age_limit('2006年8月', strict=True, now=now))
         self.assertFalse(crawler.within_age_limit('', strict=True, now=now))
         self.assertTrue(crawler.is_hikari('熊本県菊池郡菊陽町光の森７'))
         self.assertFalse(crawler.is_hikari('熊本県合志市幾久富'))
@@ -70,6 +70,15 @@ class SourcesTest(unittest.TestCase):
         s=self.sample();s.find('th',string='専有面積').string='延床面積'
         item,_=parse_detail(s,'tatara_1','https://www.tatara-fudousan.com/property_detail/1',crawler)
         self.assertIsNone(item)
+    def test_hikari_house_land_boundary(self):
+        for land, accepted in [('149.99m2', False), ('150m2', True), ('199m2', True), ('', False)]:
+            s = self.sample(所在地='熊本県菊池郡菊陽町光の森1', 土地面積=land)
+            s.find('th', string='専有面積').string = '延床面積'
+            item, _ = parse_detail(s, 'tatara_1', 'https://www.tatara-fudousan.com/property_detail/1', crawler)
+            self.assertEqual(item is not None, accepted)
+        self.assertEqual(crawler.MIN_HOUSE_LAND, 200)
+        self.assertEqual(crawler.MAX_AGE_YEARS, 15)
+
     def test_exact_url_identity(self):
         self.assertTrue(valid_detail_url('smtrc_Bkm1','https://smtrc.jp/detail/CompareDetails?propertyCode=Bkm1'))
         self.assertFalse(valid_detail_url('smtrc_Bkm1','https://smtrc.jp/detail/CompareDetails?propertyCode=Bkm2'))
