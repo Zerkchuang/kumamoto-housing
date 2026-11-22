@@ -65,6 +65,8 @@ def parse_listing(soup, url, config):
         return None, None, 'filtered'
     if not hikari and not condo and ((price and price > config.MAX_PRICE) or (land and land < config.MIN_HOUSE_LAND) or (building and building < config.MIN_HOUSE_BUILDING)):
         return None, None, 'filtered'
+    if hikari and not condo and land and land < config.HIKARI_MIN_HOUSE_LAND:
+        return None, None, 'filtered'
     missing = []
     if not address: missing.append('地址')
     if not region: missing.append('區域')
