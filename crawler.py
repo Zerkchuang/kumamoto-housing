@@ -21,6 +21,8 @@ DB_NAME = "kumamoto_properties.db"
 # Budget: TWD 15,000,000 / 0.2055 TWD per JPY; reference 2026-09-20.
 MAX_PRICE = 72992700
 MAX_AGE_YEARS = 15
+HIKARI_MAX_AGE_YEARS = 20
+HIKARI_MIN_HOUSE_LAND = 150
 MIN_HOUSE_LAND = 200
 MIN_HOUSE_BUILDING = 100
 MIN_CONDO_AREA = 35 / 0.3025  # Exclusive floor area >= 35 tsubo.
@@ -202,8 +204,9 @@ def within_age_limit(date_text, strict=False, now=None):
     now = now or datetime.now(ZoneInfo('Asia/Tokyo'))
     if not 1 <= int(match.group(2)) <= 12:
         return False
-    cutoff_month = (now.year - MAX_AGE_YEARS) * 12 + now.month
-    return built_month > cutoff_month if strict else built_month >= cutoff_month
+    age_years = HIKARI_MAX_AGE_YEARS if strict else MAX_AGE_YEARS
+    cutoff_month = (now.year - age_years) * 12 + now.month
+    return built_month >= cutoff_month
 
 
 def detail(pid, href, label, property_type):
@@ -255,8 +258,8 @@ def detail(pid, href, label, property_type):
         return None
 
     if hikari:
-        # Hikari houses retain the area exemption; condos must meet the 35-tsubo floor.
-        matches = is_house or area >= MIN_CONDO_AREA
+        # Hikari houses require verified land >=150 m2; other area exemptions remain.
+        matches = land >= HIKARI_MIN_HOUSE_LAND if is_house else area >= MIN_CONDO_AREA
     elif is_house:
         matches = (
             region in HOUSE_REGIONS
@@ -357,7 +360,7 @@ def scrape_hikari(url, report=None):
                 report["errors"] += 1
             print(f"WARN Hikari list page {page_url}: {exc}")
     if report is not None:
-        report["scope"] = f"光之森地址核對；列表分頁 {len(visited)} 頁；屋齡未滿15年，不限預算與面積"
+        report["scope"] = f"光之森地址核對；列表分頁 {len(visited)} 頁；屋齡20年內；一戶建土地至少150㎡；價格及建物面積沿用光之森例外"
         report["discovered"] = len(pairs)
         if pending:
             report["errors"] += 1
