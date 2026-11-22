@@ -16,7 +16,8 @@ BROKERS = [
     ('smtrc', '三井住友トラスト不動產', 'https://smtrc.jp/list/listViewNewDayPrice/index?prefcode=43&newProperty=5', '熊本最近7日新增／改價'),
 ]
 PROBES = [
-    ('homes', "HOME’S", 'https://www.homes.co.jp/'),
+    ('homes', "HOME’S 光之森", 'https://www.homes.co.jp/kodate/kumamoto/kikuchi_kikuyo-city/4A8F239908-town/list/'),
+    ('elife', 'E-LIFE 光之森', 'https://www.e-life.jp/sales/kodate_u/area/kumamoto/kikuchigunkikuyomachi/8691108/1/'),
     ('athome', 'at home', 'https://www.athome.co.jp/'),
     ('meiwa', '明和不動產', 'https://www.meiwa.jp/'),
 ]
@@ -94,7 +95,7 @@ def parse_detail(soup, pid, url, config):
         return None, 'filtered'
     if (condo and area < config.MIN_CONDO_AREA) or (not condo and not hikari and area < config.MIN_HOUSE_BUILDING):
         return None, 'filtered'
-    if not hikari and not condo and land < config.MIN_HOUSE_LAND:
+    if not condo and land < (config.HIKARI_MIN_HOUSE_LAND if hikari else config.MIN_HOUSE_LAND):
         return None, 'filtered'
     title_node = soup.find('title')
     title = text(title_node).split('｜')[0] if title_node else address
