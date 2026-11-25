@@ -44,7 +44,7 @@ class MiraiTest(unittest.TestCase):
         _, row, _ = parse_listing(self.sample('金額：請洽詢'), self.url, crawler)
         report = {'checked_at':'test', 'sources':[dict(source='熊本未來',scope='test',status='完成',discovered=1,matched=0,errors=0,pending_listings=[row])]}
         message = '\n'.join(build_messages(report, []))
-        self.assertIn(self.url, message)
-        self.assertIn('尚未確認符合條件', message)
+        self.assertNotIn(self.url, message)
+        self.assertNotIn('尚未確認符合條件', message)
         row['url'] = 'https://evil.test/'
         self.assertFalse(pending_blocks(report))

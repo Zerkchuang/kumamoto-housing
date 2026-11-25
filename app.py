@@ -132,6 +132,7 @@ with tab1:
     show_cols = [
         "type_label", "region", "title", "price_display", "land_spec", "bldg_spec", "layout", "build_year", "address", "tags", "url", "小學學區", "中學學區", "附近學校", "車站", "大型商場"
     ]
+    show_cols = [c for c in show_cols if c not in {"小學學區", "中學學區", "附近學校", "車站", "大型商場"} or filtered[c].fillna("").str.strip().ne("").any()]
     st.dataframe(
         filtered[show_cols].rename(columns={
             "type_label": "住宅類型",
@@ -155,15 +156,18 @@ with tab1:
     for _, row in filtered.iterrows():
         with st.expander(row["title"] + "｜周邊資訊"):
             st.write(f"{row['price_display']}｜{row['bldg_spec']}｜{row['build_year']}\n\n{row['address']}")
-            st.dataframe(pd.DataFrame(amenity_rows(row)), hide_index=True, use_container_width=True)
+            nearby = amenity_rows(row)
+            if nearby:
+                st.dataframe(pd.DataFrame(nearby), hide_index=True, use_container_width=True)
             try:
                 details = json.loads(row.get("amenities_json") or "{}")
             except (ValueError, TypeError):
                 details = {}
             if isinstance(details, dict):
-                st.caption("周邊核對時間：" + details.get("checked_at", "待更新"))
+                if nearby and details.get("checked_at"):
+                    st.caption("周邊核對時間：" + details["checked_at"])
                 for district in details.get("districts", []):
-                    if district.get("source"):
+                    if district.get("source") and district.get("name") not in {None, "", "待確認"}:
                         st.markdown(f"[{district['kind']}官方資料]({district['source']})")
             st.link_button("查看原始房源", row["url"])
 

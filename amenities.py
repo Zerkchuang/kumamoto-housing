@@ -169,11 +169,10 @@ def amenity_rows(row):
         data = {}
     result = []
     for district in data.get('districts') or assigned_schools(row.get('address', '')):
-        result.append({'項目': district['kind'], '名稱': district['name'], '距離／確認狀態': district['note']})
+        if district.get('name') and district['name'] != '待確認' and '待完整門牌' not in district.get('note', ''):
+            result.append({'項目': district['kind'], '名稱': district['name'], '距離／確認狀態': district['note']})
     for key, label in [('schools', '附近學校'), ('stations', '車站'), ('malls', '大型商場')]:
         entries = data.get(key) or []
-        if not entries:
-            result.append({'項目': label, '名稱': '待確認', '距離／確認狀態': '來源未提供可核對資訊'})
         for item in entries:
             result.append({'項目': label, '名稱': item['name'],
                            '距離／確認狀態': item['distance'] + '；' + item['note']})
@@ -182,8 +181,11 @@ def amenity_rows(row):
 
 def amenity_text(row):
     # LINE text messages do not render Markdown; use a compact column table.
-    lines = ['周邊資訊｜名稱｜距離／確認']
-    for item in amenity_rows(row):
+    rows = amenity_rows(row)
+    if not rows:
+        return ''
+    lines = ['周邊資訊｜名稱｜距離']
+    for item in rows:
         lines.append('｜'.join(item.values()))
     return '\n'.join(lines)
 

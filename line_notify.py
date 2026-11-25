@@ -40,56 +40,39 @@ def tax_budget(price):
 
 
 def build_messages(report, rows):
-    house_count = sum(r['property_type'] in {'house', 'house_new'} for r in rows)
-    new_house_count = sum(r['property_type'] == 'house_new' for r in rows)
-    condo_count = len(rows) - house_count
-    hikari_count = sum(r['region'] == '光之森' for r in rows)
-    blocks = [f"🏡 熊本購屋搜尋狀態\n{report['checked_at']}\n本次候選刊登 {len(rows)} 筆（跨站可能重複）\n一戶建 {house_count} 筆（新築 {new_house_count} 筆）；大樓／新築大樓 {condo_count} 筆。\n🌳 光之森本區 {hikari_count} 筆：屋齡未滿15年（含新築），一戶建不限預算與面積，大樓須35坪以上；依可讀取的公開列表分頁收集。\n其他區域：屋齡15年內；一戶建價格上限72,992,700円；大樓不限價格\n一戶建土地≥200㎡、建物≥100㎡；大樓豪宅候選：專有面積≥35坪（約115.70㎡），不限價格"]
-    for s in report['sources']:
-        blocks.append(f"【{s['source']}】{s['status']}\n範圍：{s['scope']}\n詳細頁 {s['discovered']}／候選 {s['matched']}／讀取錯誤 {s['errors']}／無法解析或非公開 {s.get('unreadable', 0)}")
-    blocks.append('🔴 新增＝本輪首次收錄的刊登，不代表屋主剛上市；跨站可能重複。以下是本次讀取的候選物件；網站刊登不等於仲介已確認仍可售。大樓為面積候選，管理品質與實際室內淨面積待確認。')
-    priority=('菊陽町','熊本市東區','熊本市北區','熊本市中央區','光之森','合志市')
-    rows=sorted(rows,key=lambda r:(r['property_type'] not in {'house','house_new'},r['region'] not in priority, priority.index(r['region']) if r['region'] in priority else r['region'],r['current_price']==0,r['current_price']))
-    current_region=None
-    current_category=None
+    # A single concise update; missing fields have no labels or placeholders.
+    rows = sorted(rows, key=lambda r: (r['region'] != '光之森', r['region'], r['current_price']))
+    header = f"🏡 熊本房源｜{report['checked_at']}\n刊登 {len(rows)} 筆（跨站可能重複）；可售狀態以仲介回覆為準。"
+    blocks = []
+    compact = []
     for r in rows:
-        category='一戶建' if r['property_type'] in {'house','house_new'} else '大樓豪宅候選｜35坪以上・不限價格'
-        if category != current_category:
-            current_category=category
-            current_region=None
-            blocks.append('＝＝＝＝ '+category+' ＝＝＝＝')
-        if r['region'] != current_region:
-            current_region=r['region']
-            blocks.append(f'【{current_region}｜{sum(x["region"]==current_region for x in rows)}筆】')
-        kind = r['property_type']
-        label = {'house': '一戶建', 'house_new': '新築一戶建', 'condo': '大樓候選', 'condo_new': '新築大樓建案線索'}.get(kind, kind)
-        source = {'suumo': 'SUUMO', 'tatara': 'たたら', 'smtrc': '三井住友トラスト', 'mirai': '熊本未來'}.get(r['property_id'].split('_')[0], '')
-        price = f"{r['current_price']/10000:,.0f}萬円" if r['current_price'] else '價格未定；預算未確認'
-        is_house = kind in {'house', 'house_new'}
-        area = (f"土地 {r['land_area']:.2f}㎡｜建物 {r['building_area']:.2f}㎡" if is_house
-                else f"專有面積 {r['building_area']:.2f}㎡（{r['building_area']*0.3025:.1f}坪）")
-        if kind in {'house_new', 'condo_new'}:
-            area += '；建案面積與價格區間需確認是否屬同一戶'
-        star = '⭐ 約40坪優先 ' if not is_house and r['building_area'] >= 132.23 else ''
-        new_marker = '🔴 新增｜' if r['property_id'] in report.get('new_property_ids', []) else ''
-        blocks.append(f"{new_marker}{star}【{r['region']}｜{label}｜{source}】\n{r['title'][:180]}\n{price}｜{area}\n{r['layout']}｜{r['build_year']}\n{tax_budget(r['current_price'])}\n{r.get('address', '地址待確認')}\n{r['url']}\n{amenity_text(r)}")
-    blocks.extend(pending_blocks(report))
-    if report.get("builder_checked_at"):
-        blocks.extend(builder_blocks(report))
-    blocks.append('稅金為預算預留：一次性按售價0.5–3%、年稅按0.3–1.2%。實際稅基為固定資產評價額，並受住宅減免與都市計畫區影響；不含仲介、修繕及管理費。來源有錯誤或只涵蓋首頁時，清單不代表市場全部。')
-    chunks, current = [], ''
-    for block in blocks:
-        if len(block) > 4500:
-            raise RuntimeError('A property block exceeds LINE limit')
-        joined = current + '\n\n' + block if current else block
-        if len(joined) > 4500:
-            chunks.append(current)
-            current = block
-        else:
-            current = joined
-    if current:
-        chunks.append(current)
-    return chunks
+        marker = '🔴 新增｜' if r['property_id'] in report.get('new_property_ids', []) else ''
+        title = f"{marker}【{r['region']}】{r['title'][:65]}"
+        facts = []
+        if r.get('current_price'):
+            facts.append(f"{r['current_price']/10000:,.0f}萬円")
+        if r['property_type'] in {'house', 'house_new'} and r.get('land_area'):
+            facts.append(f"土地{r['land_area']:g}㎡")
+        if r.get('building_area'):
+            facts.append(f"建物{r['building_area']:g}㎡")
+        for key in ('layout', 'build_year'):
+            if r.get(key) and '待確認' not in str(r[key]):
+                facts.append(str(r[key]))
+        base = '\n'.join([title, '｜'.join(facts), r['url']])
+        nearby = amenity_text(r)
+        blocks.append(base + ('\n' + nearby if nearby else ''))
+        compact.append(base)
+    message = '\n\n'.join([header] + blocks)
+    if len(message) > 4500:
+        message = '\n\n'.join([header + '\n本則為精簡總覽，周邊資訊請開啟房源連結。'] + compact)
+    if len(message) > 4500:
+        # Keep every listing's URL and price if full descriptions exceed one message.
+        message = header + '\n本則為精簡連結總覽。\n\n' + '\n\n'.join(
+            f"【{r['region']}】" + (f"{r['current_price']/10000:,.0f}萬円" if r.get('current_price') else '') + '\n' + r['url']
+            for r in rows)
+    if len(message) > 4500:
+        raise RuntimeError('Inventory exceeds a single LINE message; use a linked report')
+    return [message]
 
 
 def resolve_target(token):

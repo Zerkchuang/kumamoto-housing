@@ -64,8 +64,7 @@ class AmenitiesTest(unittest.TestCase):
         a = assigned_schools('熊本市中央区新屋敷1丁目', date(2027, 4, 1))
         self.assertTrue(all(x['name'] == '待確認' for x in a))
         rows = amenity_rows({'address': '合志市豊岡', 'amenities_json': 'broken'})
-        self.assertEqual(len(rows), 5)
-        self.assertTrue(all(x['名稱'] == '待確認' for x in rows))
+        self.assertEqual(rows, [])
 
     def test_schema_persistence_and_update_clears_old_details(self):
         row = dict(property_id='suumo_123', title='test', url='https://suumo.jp/chukoikkodate/kumamoto/sc_koshi/nc_123/',
@@ -90,13 +89,14 @@ class AmenitiesTest(unittest.TestCase):
                    building_area=110, layout='4LDK', build_year='2020年9月', property_type='house')
         report = {'checked_at': 'test', 'sources': []}
         message = '\n'.join(build_messages(report, [row]))
-        self.assertGreater(message.index('周邊資訊｜'), message.index(row['url']))
+        self.assertNotIn('周邊資訊｜', message)
+        self.assertNotIn('小學學區', message)
         with patch.dict(os.environ, {'LINE_CHANNEL_ACCESS_TOKEN': 'test', 'LINE_CHANNEL_SECRET': 'test'}):
             webhook = import_module('line_webhook')
             pages = webhook.inventory_pages([row], report)
-            self.assertIn('大型商場｜待確認', '\n'.join(pages))
+            self.assertNotIn('大型商場｜待確認', '\n'.join(pages))
             with patch.object(webhook, 'load_inventory', return_value=([row], report)):
-                self.assertIn('周邊資訊｜', webhook.homes())
+                self.assertNotIn('周邊資訊｜', webhook.homes())
 
 
 if __name__ == '__main__':
