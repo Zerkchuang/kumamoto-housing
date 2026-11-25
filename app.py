@@ -50,7 +50,7 @@ def load_data():
             tags.append("🌳 大地坪(>70坪)")
         if any(k in str(row["title"]) for k in ["中庭", "コートハウス", "積水", "ダイワ", "邸宅", "平屋"]):
             tags.append("🛡️ 豪邸/平屋/名門")
-        return " ".join(tags) if tags else "住宅候選（待確認）"
+        return " ".join(tags) if tags else ""
 
     df["tags"] = df.apply(get_tags, axis=1)
     for category in ["小學學區", "中學學區", "附近學校", "車站", "大型商場"]:
@@ -66,11 +66,11 @@ if report:
         st.caption("中央區、東區、合志市、菊陽町（含光之森）、大津町。以下不套用一般房源的預算與面積篩選；跨站可能重複。核對時間：" + report["builder_checked_at"])
         for maker in ["積水ハウス", "積水ハイム"]:
             with st.expander(maker, expanded=True):
-                for key, title in [("builder_listings", "住宅｜15年內"), ("builder_pending", "住宅線索｜屋齡待確認"), ("builder_land", "土地｜需另建住宅，價格不含房屋")]:
+                for key, title in [("builder_listings", "住宅｜15年內"), ("builder_land", "土地｜需另建住宅，價格不含房屋")]:
                     entries = [r for r in report.get(key,[]) if r["brand"] == maker]
                     if entries:
                         st.markdown(title)
-                        st.dataframe(pd.DataFrame([{"名稱": r["title"], "區域": r["region"], "售價": r["price_display"], "土地面積": r.get("land_area_note") or (str(r["land_area"])+"㎡" if r.get("land_area") is not None else "待確認"), "建物㎡": r["building_area"], "完工年月": r["build_year"] or "待確認", "網址": r["url"]} for r in entries]), hide_index=True,
+                        st.dataframe(pd.DataFrame([{"名稱": r["title"], "區域": r["region"], "售價": r["price_display"], "土地面積": r.get("land_area_note") or (str(r["land_area"])+"㎡" if r.get("land_area") is not None else ""), "建物㎡": r["building_area"], "完工年月": r["build_year"] or "", "網址": r["url"]} for r in entries]), hide_index=True,
                                      column_config={"網址": st.column_config.LinkColumn("查看房源")})
 
 
