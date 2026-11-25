@@ -32,6 +32,8 @@ PRICE_BASIS = 'sale_price_field_v2'
 # Houses keep the large-lot requirements. Condos use exclusive floor area instead,
 # so they are never incorrectly rejected for not owning 200 m2 of land.
 TARGET_SOURCES = [
+    ("肥後大津站周邊", "house", "https://suumo.jp/chukoikkodate/kumamoto/ek_77695/"),
+    ("肥後大津站周邊", "house_new", "https://suumo.jp/ikkodate/kumamoto/ek_77695/"),
     ("菊陽町", "house", "https://suumo.jp/chukoikkodate/kumamoto/sc_kikuchigun/"),
     ("合志市", "house", "https://suumo.jp/chukoikkodate/kumamoto/sc_koshi/"),
     ("光之森中古", "mixed", "https://suumo.jp/b/kodate/kw/%E5%85%89%E3%81%AE%E6%A3%AE%E3%80%80%E4%B8%AD%E5%8F%A4%E7%89%A9%E4%BB%B6/"),
@@ -50,7 +52,7 @@ TARGET_SOURCES = [
     ("熊本市新築大樓", "condo_new", "https://suumo.jp/ms/shinchiku/kumamoto/"),
 ]
 CONDO_REGIONS = {"熊本市中央區", "熊本市東區", "熊本市北區", "光之森"}
-HOUSE_REGIONS = {"熊本市中央區", "菊陽町", "光之森", "光之森周邊", "合志市", "熊本市東區", "熊本市北區"}
+HOUSE_REGIONS = {"大津町", "熊本市中央區", "菊陽町", "光之森", "光之森周邊", "合志市", "熊本市東區", "熊本市北區"}
 
 
 def is_hikari(address):

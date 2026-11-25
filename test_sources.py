@@ -104,7 +104,7 @@ class SourcesTest(unittest.TestCase):
         self.assertIn('土地210㎡', text)
         self.assertIn('刊登 1 筆', text)
     def test_new_house_sources_and_completion_date(self):
-        self.assertEqual(sum(kind == 'house_new' for _, kind, _ in crawler.TARGET_SOURCES), 5)
+        self.assertEqual(sum(kind == 'house_new' for _, kind, _ in crawler.TARGET_SOURCES), 6)
         self.assertEqual(crawler.build_date('完成予定時期 2027年3月', is_new=True), '2027年3月')
 
 if __name__=='__main__':unittest.main()
